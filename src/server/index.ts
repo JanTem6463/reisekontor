@@ -5,6 +5,7 @@ import { type Db, createDb } from "../db/client.ts";
 import { logger as appLogger } from "../shared/logger.ts";
 import { authMiddleware } from "./middleware/auth.ts";
 import { createAuthRouter } from "./routes/auth.ts";
+import { createDaysRouter } from "./routes/days.ts";
 import { createHealthRouter } from "./routes/health.ts";
 
 export interface ServerDeps {
@@ -32,6 +33,7 @@ export function createServer(deps: ServerDeps): Hono {
   app.use("/api/*", authMiddleware(deps.sessionSecret));
 
   app.route("/api/health", createHealthRouter());
+  app.route("/api/days", createDaysRouter({ db: deps.db }));
 
   // 404 für alles andere — UI kommt in Phase 2
   app.notFound((c) => c.json({ error: "not_found", hint: "UI kommt in Phase 2" }, 404));
