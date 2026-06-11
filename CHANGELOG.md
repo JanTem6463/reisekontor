@@ -7,6 +7,23 @@ Versionierung: [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-06-11
+
+### Added
+- Backend `src/services/export.ts` mit `buildReisekostenRows(db, year, config)` + `buildHomeofficeRows(db, year, config)`.
+- Backend `src/export/{csv,xlsx,pdf}.ts` mit Generator-Funktionen für beide Exports.
+- Backend `src/server/routes/export.ts` — `GET /api/export/{reisekosten,homeoffice}?year=&format=pdf|xlsx|csv` mit Content-Type + Content-Disposition.
+- Dependencies `exceljs@^4.4.0`, `pdfkit@^0.19.1`, `@types/pdfkit`.
+- 25 neue Tests (8 Service + 5 CSV/XLSX + 3 PDF + 9 Integration).
+- UI: `downloadExport(kind, year, format)` mit Blob + Content-Disposition Filename-Extraktion.
+- UI: `ui/src/components/export/ExportPanel.tsx` + echte `Export.tsx` Page mit 6 Download-Buttons.
+
+### Changed
+- `package.json` + `ui/package.json` — Version 0.8.0.
+- Locales `de.json` + `en.json` — 8 Export-Strings ergänzt (166 Keys total in beiden).
+- `src/server/index.ts` — `/api/export` registriert unter authMiddleware.
+- PDF-Generator: Mahlzeiten-Indikator `✓` durch `X` ersetzt (Helvetica/WinAnsi-Limitation).
+
 ## [0.7.0] — 2026-06-11
 
 ### Added
