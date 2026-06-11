@@ -6,5 +6,6 @@ export default defineConfig({
     environment: "node",
     reporters: "default",
     passWithNoTests: true,
+    testTimeout: 30000,
   },
 });

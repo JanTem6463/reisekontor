@@ -7,6 +7,21 @@ Versionierung: [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-06-11
+
+### Added
+- `src/services/holidays.ts` — `syncHolidaysForYear(db, year, bundesland)` mit Cleanup + Idempotenz + User-Override-Respekt; explizite Validierung des Bundeslandes gegen `date-holidays.getStates("DE")`.
+- `src/services/checks.ts` — `checkYear(db, year)` wrappt `plausibilitaet.checkAll()` der Domain.
+- `src/server/routes/holidays.ts` — `POST /api/holidays/sync?year`.
+- `src/server/routes/checks.ts` — `GET /api/checks?year`.
+- Dependency `date-holidays@3.30.2` für gesetzliche Feiertage je Bundesland (Filter auf `type: "public"`).
+- Integration-Tests für `/api/holidays/sync` und `/api/checks`.
+
+### Changed
+- `package.json` — Version 0.4.0.
+- `src/server/index.ts` — neue Routen `/api/holidays` und `/api/checks` unter `authMiddleware` registriert.
+- `vitest.config.ts` — `testTimeout: 30000` (war Default 5000); argon2-Hashing in `beforeAll` mehrerer Integration-Test-Files braucht mehr Headroom unter paralleler Last.
+
 ## [0.3.0] — 2026-06-11
 
 ### Added
