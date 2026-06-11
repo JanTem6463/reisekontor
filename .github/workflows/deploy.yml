@@ -1,0 +1,22 @@
+name: deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER }}
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/reisekontor
+            git fetch origin main
+            git reset --hard origin/main
+            docker compose -f docker/docker-compose.yaml up -d --build
+            docker compose -f docker/docker-compose.yaml ps
