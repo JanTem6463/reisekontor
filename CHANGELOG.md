@@ -7,6 +7,26 @@ Versionierung: [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-06-11
+
+### Added
+- `ui/` — neuer pnpm-Workspace mit Vite + React 19 + TypeScript strict.
+- `ui/src/lib/api.ts` — typisierter API-Client mit `ApiError`/`UnauthorizedError`/`NetworkError`.
+- `ui/src/lib/i18n.ts` — react-i18next mit DE als Default und EN als Switch (`ui/src/locales/{de,en}.json`).
+- `ui/src/lib/theme.ts` — Dark/Light-Toggle, persistiert in `localStorage['rk-theme']`.
+- Tailwind CSS 3.4 mit Dark-Mode (class-based, Default dark) und shadcn/ui-Basis-Komponenten (button, input, label, card, sonner).
+- React-Router v6 mit `/login` (öffentlich) + `/uebersicht`/`/reisen`/`/export`/`/einstellungen` (auth-protected via `ProtectedLayout`).
+- `LoginPage` mit POST `/api/auth/login`-Integration + Toast-Feedback bei falschem Passwort.
+- `TopBar` mit Sprach-Switcher, Theme-Toggle und Logout.
+- `NavTabs` mit aktivem-Tab-Highlight.
+- Vite-Dev-Proxy: `/api` → `http://localhost:3030`.
+
+### Changed
+- `package.json` — Version 0.5.0, neue Scripts `dev:ui`, `build:ui`, `typecheck:ui`, `lint:ui`.
+- `pnpm-workspace.yaml` — `ui` als zweiter Workspace.
+- `biome.json` — `ui/dist` und `ui/node_modules` ignoriert.
+- `.gitignore` — `ui/dist/`, `ui/*.tsbuildinfo`, `ui/vite.config.{d.ts,js}` ergänzt.
+
 ## [0.4.0] — 2026-06-11
 
 ### Added

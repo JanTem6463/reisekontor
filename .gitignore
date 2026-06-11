@@ -1,6 +1,9 @@
 node_modules/
 dist/
 ui/dist/
+ui/*.tsbuildinfo
+ui/vite.config.d.ts
+ui/vite.config.js
 coverage/
 data/
 .env

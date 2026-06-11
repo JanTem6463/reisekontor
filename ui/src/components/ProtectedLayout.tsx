@@ -1,6 +1,6 @@
+import { UnauthorizedError, api } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { api, UnauthorizedError } from "@/lib/api";
 import { NavTabs } from "./NavTabs";
 import { TopBar } from "./TopBar";
 

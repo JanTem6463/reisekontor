@@ -1,6 +1,6 @@
+import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
-import { cn } from "@/lib/utils";
 
 const tabs = [
   { to: "/uebersicht", labelKey: "nav.uebersicht" },

@@ -33,5 +33,17 @@
         "useImportType": "error"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "include": ["**/App.tsx", "**/pages/**", "**/i18n.ts", "**/Login.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    }
+  ]
 }

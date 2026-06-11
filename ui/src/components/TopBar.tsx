@@ -1,10 +1,10 @@
+import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
+import { type Theme, getStoredTheme, toggleTheme } from "@/lib/theme";
+import { LogOut, Moon, Sun } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
-import { getStoredTheme, toggleTheme, type Theme } from "@/lib/theme";
 
 export function TopBar() {
   const { t, i18n } = useTranslation();
