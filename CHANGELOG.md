@@ -7,6 +7,37 @@ Versionierung: [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-06-11
+
+### Added
+- `docker/Dockerfile` Multi-Stage Build: `ui-builder` (UI build via pnpm), `deps` (Server prod-deps mit better-sqlite3 native-build), `runtime` (node:22-alpine, USER node, EXPOSE 3030).
+- `docker/docker-compose.yaml` mit reisekontor-Service, Volume `reisekontor-data`, Port-Bind `127.0.0.1:8082:3030`, `restart: unless-stopped`, env_file aus `../.env`.
+- `docker/Caddyfile.snippet` als Reference-Konfig für die Hetzner-Box (auto-TLS via Let's Encrypt + Security-Header).
+- `.dockerignore` — schließt node_modules, data, coverage, tests, *.test.ts, docs/mindCoder, .env aus dem Build-Context aus.
+- `.github/workflows/ci.yml` — Lint + Typecheck + Tests + UI-Build auf jedem Push/PR auf `main`. pnpm-Version aus `package.json#packageManager`.
+- `.github/workflows/deploy.yml` — manueller SSH-Deploy zu Hetzner via `workflow_dispatch` + `appleboy/ssh-action@v1`. Pull + reset --hard + docker compose up -d --build.
+- `docs/runbook.md` — Initial-Setup (10 Schritte) + GitHub-Secrets + Deploy-Loop + Rollback + Logs + Passwort-Wechsel + manueller Snapshot/Restore + Disk-Space-Check.
+- GitHub-Repo `JanTem6463/reisekontor` (privat) angelegt; alle 97+ Commits gepusht.
+
+### Changed
+- `src/server/index.ts` — `serveStatic` aus `@hono/node-server/serve-static` für `./public/` + SPA-Fallback auf `index.html`. Aktiviert sich nur wenn `./public/index.html` existiert (Production-Image hat es; Dev nicht). Dev-Modus liefert weiterhin 404 mit Hinweis auf Vite-Dev-Server.
+- `package.json` — `tsx` von `devDependencies` nach `dependencies` verschoben (Production-Runtime im Docker-Image).
+- `.env.example` — Production-Hinweise + `NODE_ENV=` ergänzt.
+- `package.json` + `ui/package.json` — Version 0.9.0.
+
+### Fixed
+- `docker/Dockerfile` CMD: `node node_modules/tsx/dist/cli.mjs` direkt statt `node node_modules/.bin/tsx`. Der `.bin`-Eintrag ist ein POSIX-Shell-Wrapper, den `node` als JS zu parsen versucht → SyntaxError. Direkter Aufruf der ESM-CLI fixt es.
+- `.github/workflows/ci.yml` — `version: 9` Argument an `pnpm/action-setup@v4` entfernt; pnpm-Version wird jetzt aus `package.json#packageManager` (`pnpm@9.12.0`) gelesen. Vermeidet `ERR_PNPM_BAD_PM_VERSION`.
+
+### Out of Scope (bewusst)
+- Backup-Cron (User-Entscheidung).
+- Disaster-Recovery-Automation.
+- Monitoring/Alerting jenseits der Hetzner-Standard-Metriken.
+
+### Operational Notes
+- Image-Größe: ~653 MB (multi-stage `node:22-alpine`). Optimierung auf <300 MB möglich via gezieltes Pruning, hier akzeptiert.
+- Hetzner-Box-Setup ist User-Schritt — Runbook beschreibt es vollständig.
+
 ## [0.8.0] — 2026-06-11
 
 ### Added
