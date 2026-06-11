@@ -7,6 +7,26 @@ Versionierung: [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-06-11
+
+### Added
+- `ui/src/contexts/YearContext.tsx` — globales aktives Steuerjahr, persistiert in `localStorage['rk-year']`.
+- TanStack Query als Server-State (`QueryClientProvider` in `main.tsx`).
+- API-Client um `listDays`, `upsertDay`, `deleteDay`, `getSummary`, `getChecks`, `syncHolidays` erweitert.
+- 9 shadcn-Komponenten ergänzt: dialog, sheet, badge, separator, skeleton, checkbox, select, progress, scroll-area.
+- `ui/src/lib/day-styles.ts` — Tagestyp-Farben als Tailwind-Klassen + Labels.
+- `ui/src/lib/money-format.ts` — `formatEur(cent)` für UI.
+- `ui/src/lib/query-client.ts` — QueryClient-Factory mit Auth-Redirect bei 401.
+- `ui/src/hooks/{useDays,useSummary,useChecks,useUpsertDay,useDeleteDay,useResolvedTheme}.ts`.
+- `ui/src/components/uebersicht/{YearSelector,KennzahlenCards,PlausibilitaetList,Monatskalender,TagesdetailSheet,YearHeatmap}.tsx`.
+- `ui/src/pages/Uebersicht.tsx` als echte Übersicht-Seite (Kalender als Mittelpunkt, Kennzahlen-Karten, Plausi-Hinweise, Heatmap).
+- date-fns + de-Locale für Datums-Math.
+
+### Changed
+- `ui/src/components/ui/sonner.tsx` — Theme jetzt aus `rk-theme` abgeleitet (statt OS-system), via `useResolvedTheme`-Hook mit MutationObserver.
+- `package.json` + `ui/package.json` — Version 0.6.0.
+- Locales `de.json` + `en.json` — erweitert auf 85 Keys (Tagestypen, Mahlzeiten, Checks-Codes, Kennzahlen, Tagesdetail, Kalender, Heatmap, Year-Selector, Backend-Error-Codes).
+
 ## [0.5.0] — 2026-06-11
 
 ### Added
