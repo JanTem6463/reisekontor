@@ -11,7 +11,7 @@
    ```
 3. Repo clonen:
    ```bash
-   git clone git@github.com:<owner>/reisekontor.git .
+   git clone git@github.com:JanTem6463/reisekontor.git .
    ```
 4. `.env` erstellen. Werte vorher lokal erzeugen:
    - `APP_PASSWORD_HASH`: lokal `pnpm hash:password <plain>` ausführen, Hash kopieren.

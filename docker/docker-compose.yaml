@@ -5,6 +5,8 @@ services:
       dockerfile: docker/Dockerfile
     image: reisekontor:latest
     container_name: reisekontor
+    # env_file ist relativ zum compose-File (docker/), nicht zur cwd.
+    # Erwartet wird .env im Repo-Root (../). Runbook step 4 erstellt sie dort.
     env_file:
       - ../.env
     environment:
