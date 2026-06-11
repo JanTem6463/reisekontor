@@ -1,4 +1,7 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { type AppConfig, loadConfig } from "../config/index.ts";
 import { type Db, createDb } from "../db/client.ts";
@@ -51,8 +54,29 @@ export function createServer(deps: ServerDeps): Hono {
   app.route("/api/settings", createSettingsRouter({ db: deps.db, config: deps.config }));
   app.route("/api/export", createExportRouter({ db: deps.db, config: deps.config }));
 
-  // 404 für alles andere — UI kommt in Phase 2
-  app.notFound((c) => c.json({ error: "not_found", hint: "UI kommt in Phase 2" }, 404));
+  // Statische UI-Dateien (Production) — nur wenn ./public/index.html existiert
+  const publicDir = process.env.STATIC_DIR ?? "./public";
+  let indexHtml: string | null = null;
+  try {
+    indexHtml = readFileSync(join(publicDir, "index.html"), "utf8");
+  } catch {
+    // dev mode: keine statische UI im Server
+  }
+
+  if (indexHtml !== null) {
+    app.use("/*", serveStatic({ root: publicDir }));
+    // SPA-Fallback: alles, was nicht /api/* ist und nicht statisch gefunden wurde → index.html
+    app.notFound((c) => {
+      if (c.req.path.startsWith("/api/")) {
+        return c.json({ error: "not_found" }, 404);
+      }
+      return c.html(indexHtml ?? "");
+    });
+  } else {
+    app.notFound((c) =>
+      c.json({ error: "not_found", hint: "UI über Vite-Dev-Server (Port 5174)" }, 404),
+    );
+  }
 
   // Zentraler Error-Handler — keine Stack-Traces nach außen
   app.onError((err, c) => {

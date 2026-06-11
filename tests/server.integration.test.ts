@@ -123,6 +123,6 @@ describe("Server Integration — Login → Health → Logout", () => {
     expect(res.status).toBe(404);
     const body = (await res.json()) as { error: string; hint: string };
     expect(body.error).toBe("not_found");
-    expect(body.hint).toContain("Phase 2");
+    expect(body.hint).toContain("Vite-Dev-Server");
   });
 });
