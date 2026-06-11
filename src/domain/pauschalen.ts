@@ -1,4 +1,4 @@
-import type { Meals, Rates } from "./types.ts";
+import type { DayEntry, Meals, Rates } from "./types.ts";
 
 /**
  * Summe der Mahlzeitenkürzungen in Cent.
@@ -10,4 +10,23 @@ export function kuerzungCent(meals: Meals, rates: Rates): number {
     (meals.mittag ? rates.kuerzHauptCent : 0) +
     (meals.abend ? rates.kuerzHauptCent : 0)
   );
+}
+
+/**
+ * Verpflegungspauschale eines Tages in Cent.
+ * Nicht-Reisetage → 0. Kürzungs-Floor bei 0 (nie negativ). Zuzahlung kürzt
+ * die Mahlzeitenkürzung, kann sie aber nicht negativ machen.
+ */
+export function verpflegungProTagCent(day: DayEntry, rates: Rates): number {
+  const base =
+    day.type === "reise_voll"
+      ? rates.grosseCent
+      : day.type === "reise_anreise" ||
+          day.type === "reise_abreise" ||
+          day.type === "reise_eintaegig"
+        ? rates.kleineCent
+        : 0;
+  if (base === 0) return 0;
+  const kuerz = Math.max(kuerzungCent(day.meals, rates) - day.zuzahlungCent, 0);
+  return Math.max(base - kuerz, 0);
 }
