@@ -17,7 +17,11 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "tsx scripts/run-migrations.ts",
     "db:generate": "drizzle-kit generate",
-    "hash:password": "tsx scripts/hash-password.ts"
+    "hash:password": "tsx scripts/hash-password.ts",
+    "dev:ui": "pnpm --filter @reisekontor/ui dev",
+    "build:ui": "pnpm --filter @reisekontor/ui build",
+    "typecheck:ui": "pnpm --filter @reisekontor/ui typecheck",
+    "lint:ui": "pnpm --filter @reisekontor/ui lint:check"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
