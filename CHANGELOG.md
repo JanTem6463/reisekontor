@@ -7,6 +7,24 @@ Versionierung: [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-06-11
+
+### Added
+- `src/services/` — Service-Layer als pure functions:
+  - `mappers.ts` — DB-Row ↔ Domain-DayEntry-Konversion.
+  - `days.ts` — list/get/upsert/delete für Tageseinträge.
+  - `trips.ts` — list/get/create/update (Hart-Reset)/delete für Reisen, transaktional.
+  - `summary.ts` — `computeSummary()` für Jahres-Kennzahlen (Verpflegung, HO-Tage/-Betrag, Reisetage nach Typ).
+- `src/server/routes/days.ts` — `GET /api/days?year`, `PUT /api/days/:date`, `DELETE /api/days/:date` mit Validierung für Reise-Tage und Kombi-Tage.
+- `src/server/routes/trips.ts` — `GET /api/trips?year`, `GET /api/trips/:id`, `POST /api/trips`, `PUT /api/trips/:id`, `DELETE /api/trips/:id`.
+- `src/server/routes/summary.ts` — `GET /api/summary?year`.
+- `src/server/middleware/request-logger.ts` — pino-basiertes Request-Logging (method, path, status, duration_ms).
+- Integration-Tests für `/api/days`, `/api/trips`, `/api/summary`.
+
+### Changed
+- `package.json` — Version 0.3.0.
+- `src/server/index.ts` — neue Routen registriert, Request-Logger als erste Middleware eingehängt.
+
 ## [0.2.0] — 2026-06-11
 
 ### Added
