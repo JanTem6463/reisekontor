@@ -1,0 +1,15 @@
+# An den bestehenden Caddyfile-Eintrag der Hetzner-Box anhängen.
+# Caddy holt das TLS-Zertifikat automatisch über Let's Encrypt,
+# sobald ein A-Record für reisen.jans-Claude-Apps.de existiert.
+
+reisen.jans-Claude-Apps.de {
+  encode zstd gzip
+  reverse_proxy 127.0.0.1:8082
+
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "no-referrer"
+  }
+}

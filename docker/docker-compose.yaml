@@ -1,0 +1,22 @@
+services:
+  reisekontor:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: reisekontor:latest
+    container_name: reisekontor
+    env_file:
+      - ../.env
+    environment:
+      - NODE_ENV=production
+      - APP_CONFIG_PATH=/app/config/app.yaml
+      - DATABASE_PATH=/app/data/reisekontor.db
+      - PORT=3030
+    volumes:
+      - reisekontor-data:/app/data
+    ports:
+      - "127.0.0.1:8082:3030"
+    restart: unless-stopped
+
+volumes:
+  reisekontor-data:
