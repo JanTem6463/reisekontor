@@ -7,6 +7,26 @@ Versionierung: [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-06-11
+
+### Added
+- Backend `src/services/settings.ts` mit `getEffectiveSettings(db, config)` + `updateSettings(db, body, config)`; Effective-Pattern: DB-Override (settings-Tabelle) gewinnt über Config-Fallback. 7 Service-Tests.
+- Backend `src/server/routes/settings.ts` — `GET /api/settings`, `PUT /api/settings` mit Zod-Validierung; Bundesland-Validierung gegen `Holidays().getStates("DE")`. 5 Integration-Tests.
+- UI API-Client um `listTrips`, `getTrip`, `createTrip`, `updateTrip`, `deleteTrip`, `getSettings`, `updateSettings` erweitert.
+- 7 neue UI-Hooks: `useTrips`, `useCreateTrip`, `useUpdateTrip`, `useDeleteTrip` (Optimistic Remove), `useSettings`, `useUpdateSettings`, `useSyncHolidays`.
+- shadcn-Komponenten `alert-dialog` und `table`.
+- `ui/src/components/reisen/{ReisenList,ReiseFormDialog,HartResetWarnung,ReiseDeleteDialog}.tsx`.
+- `ui/src/components/einstellungen/{BundeslandSelect,StandardwocheCheckboxes,PauschalenAnzeige,SettingsForm}.tsx`.
+- `ui/src/pages/Reisen.tsx` und `Einstellungen.tsx` als echte Seiten.
+- Hart-Reset-Warnung beim Trip-Update wenn manuelle Mahlzeiten verloren gehen würden.
+- Auto-Holidays-Sync nach Bundesland-Wechsel in den Einstellungen.
+- Pauschalen-Anzeige (read-only) für Steuerjahr 2026.
+
+### Changed
+- `package.json` + `ui/package.json` — Version 0.7.0.
+- Locales `de.json` + `en.json` — auf 157 Keys (Bundesländer-Namen, Wochentage, Reisen-Form, Einstellungen-Form, Backend-Error-Codes).
+- `src/server/index.ts` — neue Route `/api/settings` registriert unter authMiddleware.
+
 ## [0.6.0] — 2026-06-11
 
 ### Added
