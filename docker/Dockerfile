@@ -40,4 +40,4 @@ RUN mkdir -p /app/data && chown -R node:node /app/data /app
 USER node
 EXPOSE 3030
 
-CMD ["node", "node_modules/.bin/tsx", "src/server/index.ts"]
+CMD ["node", "node_modules/tsx/dist/cli.mjs", "src/server/index.ts"]
