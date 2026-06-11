@@ -45,6 +45,70 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export type DayType =
+  | "homeoffice"
+  | "buero"
+  | "reise_anreise"
+  | "reise_voll"
+  | "reise_abreise"
+  | "reise_eintaegig"
+  | "urlaub"
+  | "krankheit"
+  | "feiertag";
+
+export interface DayEntryDto {
+  date: string;
+  year: number;
+  type: DayType;
+  homeoffice: boolean;
+  tripId: number | null;
+  fruehstueck: boolean;
+  mittag: boolean;
+  abend: boolean;
+  zuzahlungCent: number;
+}
+
+export interface YearSummary {
+  year: number;
+  verpflegungSummeCent: number;
+  kuerzungSummeCent: number;
+  homeofficeTage: number;
+  homeofficeMaxTage: number;
+  homeofficeBetragCent: number;
+  homeofficeMaxBetragCent: number;
+  reisetageNachTyp: Record<
+    "reise_anreise" | "reise_voll" | "reise_abreise" | "reise_eintaegig",
+    number
+  >;
+  reisenAnzahl: number;
+}
+
+export type PlausibilitaetCode =
+  | "DOPPEL_HO_REISE_VOLL"
+  | "EINTAEGIG_8H_BESTAETIGEN"
+  | "HO_KONFLIKT_ENTFERNUNG";
+
+export interface PlausibilitaetHinweis {
+  code: PlausibilitaetCode;
+  date: string;
+  schwere: "hinweis" | "warnung";
+}
+
+export interface UpsertDayBody {
+  type: DayType;
+  homeoffice?: boolean;
+  tripId?: number | null;
+  meals?: { fruehstueck?: boolean; mittag?: boolean; abend?: boolean };
+  zuzahlungCent?: number;
+}
+
+export interface HolidaysSyncResult {
+  year: number;
+  bundesland: string;
+  created: number;
+  skipped: Array<{ date: string; existingType: string }>;
+}
+
 export interface HealthResponse {
   ok: boolean;
   version: string;
@@ -59,4 +123,15 @@ export const api = {
     }),
   logout: () => request<{ ok: true }>("/api/auth/logout", { method: "POST" }),
   getHealth: () => request<HealthResponse>("/api/health"),
+  listDays: (year: number) => request<DayEntryDto[]>(`/api/days?year=${year}`),
+  upsertDay: (date: string, body: UpsertDayBody) =>
+    request<{ ok: true; created: boolean }>(`/api/days/${date}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+  deleteDay: (date: string) => request<{ ok: true }>(`/api/days/${date}`, { method: "DELETE" }),
+  getSummary: (year: number) => request<YearSummary>(`/api/summary?year=${year}`),
+  getChecks: (year: number) => request<PlausibilitaetHinweis[]>(`/api/checks?year=${year}`),
+  syncHolidays: (year: number) =>
+    request<HolidaysSyncResult>(`/api/holidays/sync?year=${year}`, { method: "POST" }),
 };
