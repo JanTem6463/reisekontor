@@ -30,3 +30,23 @@ export function verpflegungProTagCent(day: DayEntry, rates: Rates): number {
   const kuerz = Math.max(kuerzungCent(day.meals, rates) - day.zuzahlungCent, 0);
   return Math.max(base - kuerz, 0);
 }
+
+/**
+ * Anzahl der Homeoffice-Tage. Urlaub, Krankheit, Feiertag, Büro
+ * und reise_voll/reise_eintaegig zählen NIE.
+ */
+export function homeofficeTage(days: DayEntry[]): number {
+  return days.filter(
+    (d) =>
+      d.type === "homeoffice" ||
+      (d.homeoffice && (d.type === "reise_anreise" || d.type === "reise_abreise")),
+  ).length;
+}
+
+/**
+ * Homeoffice-Pauschale in Cent. Gedeckelt auf homeofficeMaxCent
+ * (in 2026: 126.000 Cent = 1.260 € = 210 × 600).
+ */
+export function homeofficePauschaleCent(days: DayEntry[], rates: Rates): number {
+  return Math.min(homeofficeTage(days) * rates.homeofficeProTagCent, rates.homeofficeMaxCent);
+}
