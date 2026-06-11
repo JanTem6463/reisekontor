@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": ["node_modules", "dist", "coverage"]
+    "ignore": ["node_modules", "dist", "coverage", "src/db/migrations"]
   },
   "formatter": {
     "enabled": true,
