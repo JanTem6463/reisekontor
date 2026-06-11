@@ -1,0 +1,42 @@
+%% Domänenmodell — Reisekontor
+%% Erstellt: 2026-06-11
+%% Beschreibung: Fachliche Kern-Entitäten. Persistenz folgt in Phase 1.
+
+erDiagram
+    TAG {
+        string datum PK
+        string tagestyp
+        bool homeoffice
+        int trip_id FK
+        bool fruehstueck
+        bool mittag
+        bool abend
+        int zuzahlung_cent
+    }
+    REISE {
+        int id PK
+        int jahr
+        string start_datum
+        string end_datum
+        bool uebernachtung
+    }
+    SETTINGS {
+        string key PK
+        string value
+    }
+    SATZWERK {
+        int jahr
+        int kleine_cent
+        int grosse_cent
+        int kuerz_fruehstueck_cent
+        int kuerz_haupt_cent
+        int homeoffice_pro_tag_cent
+        int homeoffice_max_cent
+    }
+    FEIERTAG {
+        string datum PK
+        string bezeichnung
+        string bundesland
+        int jahr
+    }
+    REISE ||--o{ TAG : "umfasst"

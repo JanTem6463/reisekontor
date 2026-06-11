@@ -1,0 +1,25 @@
+# Reisekontor — fachliche Konfiguration
+# Steuersätze und Standardregeln. Werte je Steuerjahr separat ablegen.
+# WICHTIG: Sätze NIE im Code hardcoden. Beträge in Cent.
+
+jahre:
+  "2026":
+    kleine_cent: 1400              # 14,00 EUR — An-/Abreise, eintägig >8h
+    grosse_cent: 2800              # 28,00 EUR — voller Tag (24h)
+    kuerz_fruehstueck_cent: 560    # 5,60 EUR  — 20 % von 28 EUR
+    kuerz_haupt_cent: 1120         # 11,20 EUR — 40 % von 28 EUR (Mittag/Abend)
+    homeoffice_pro_tag_cent: 600   # 6,00 EUR
+    homeoffice_max_tage: 210
+    homeoffice_max_cent: 126000    # 1.260,00 EUR — Jahres-Höchstbetrag
+
+standardwoche:                     # true = automatisch Homeoffice
+  mo: true
+  di: true
+  mi: true
+  do: true
+  fr: true
+  sa: false
+  so: false
+
+feiertage:
+  bundesland: NI                   # Niedersachsen

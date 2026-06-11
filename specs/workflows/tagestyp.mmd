@@ -1,0 +1,16 @@
+%% Workflow — Klassifikation der Tagestypen einer Reise
+%% Erstellt: 2026-06-11
+%% Beschreibung: Wie classifyTrip aus (start, end, uebernachtung)
+%%   die Liste der ClassifiedDay erzeugt.
+
+flowchart TD
+    A[TripInput: start, end, uebernachtung] --> B{Anzahl Kalendertage?}
+    B -->|1| C{uebernachtung?}
+    C -->|false| D[reise_eintaegig]
+    C -->|true| E[Fehler: eintägig kann keine Übernachtung haben]
+    B -->|2| F{uebernachtung?}
+    F -->|false| G[reise_eintaegig auf Start-Datum<br/>Mitternachtsregelung]
+    F -->|true| H[Anreise + Abreise]
+    B -->|n >= 3| I{uebernachtung?}
+    I -->|false| J[Fehler: mehrtägig braucht Übernachtung]
+    I -->|true| K[Anreise + n-2 volle Tage + Abreise]
