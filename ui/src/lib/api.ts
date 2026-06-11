@@ -109,6 +109,45 @@ export interface HolidaysSyncResult {
   skipped: Array<{ date: string; existingType: string }>;
 }
 
+export interface TripDto {
+  id: number;
+  year: number;
+  startDate: string;
+  endDate: string;
+  uebernachtung: boolean;
+}
+
+export interface TripWithDays {
+  trip: TripDto;
+  days: DayEntryDto[];
+}
+
+export interface TripBody {
+  startDate: string;
+  endDate: string;
+  uebernachtung: boolean;
+}
+
+export interface Standardwoche {
+  mo: boolean;
+  di: boolean;
+  mi: boolean;
+  do: boolean;
+  fr: boolean;
+  sa: boolean;
+  so: boolean;
+}
+
+export interface EffectiveSettings {
+  bundesland: string;
+  standardwoche: Standardwoche;
+}
+
+export interface UpdateSettingsBody {
+  bundesland?: string;
+  standardwoche?: Standardwoche;
+}
+
 export interface HealthResponse {
   ok: boolean;
   version: string;
@@ -134,4 +173,23 @@ export const api = {
   getChecks: (year: number) => request<PlausibilitaetHinweis[]>(`/api/checks?year=${year}`),
   syncHolidays: (year: number) =>
     request<HolidaysSyncResult>(`/api/holidays/sync?year=${year}`, { method: "POST" }),
+  listTrips: (year: number) => request<TripWithDays[]>(`/api/trips?year=${year}`),
+  getTrip: (id: number) => request<TripWithDays>(`/api/trips/${id}`),
+  createTrip: (body: TripBody) =>
+    request<TripWithDays>("/api/trips", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateTrip: (id: number, body: TripBody) =>
+    request<TripWithDays>(`/api/trips/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+  deleteTrip: (id: number) => request<{ ok: true }>(`/api/trips/${id}`, { method: "DELETE" }),
+  getSettings: () => request<EffectiveSettings>("/api/settings"),
+  updateSettings: (body: UpdateSettingsBody) =>
+    request<EffectiveSettings>("/api/settings", {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
 };
