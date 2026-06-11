@@ -1,0 +1,32 @@
+{
+  "common.login": "Anmelden",
+  "common.logout": "Abmelden",
+  "common.password": "Passwort",
+  "common.theme.toggle": "Theme umschalten",
+  "common.language": "Sprache",
+  "common.language.de": "Deutsch",
+  "common.language.en": "Englisch",
+
+  "nav.uebersicht": "Übersicht",
+  "nav.reisen": "Reisen",
+  "nav.export": "Export",
+  "nav.einstellungen": "Einstellungen",
+
+  "pages.login.title": "Anmelden",
+  "pages.login.submit": "Anmelden",
+  "pages.login.password_placeholder": "Passwort",
+  "pages.uebersicht.title": "Übersicht",
+  "pages.uebersicht.placeholder": "Kalender, Kennzahlen und Heatmap kommen in Phase 2.B.",
+  "pages.reisen.title": "Reisen",
+  "pages.reisen.placeholder": "Reisen-Liste und -Detail kommen in Phase 2.C.",
+  "pages.export.title": "Export",
+  "pages.export.placeholder": "Export-Dialog kommt in Phase 3.",
+  "pages.einstellungen.title": "Einstellungen",
+  "pages.einstellungen.placeholder": "Standardwoche, Bundesland und Pauschalen-Ansicht kommen in Phase 2.C.",
+
+  "errors.invalid_password": "Falsches Passwort.",
+  "errors.invalid_body": "Ungültige Eingabe.",
+  "errors.network": "Netzwerkfehler. Bitte erneut versuchen.",
+  "errors.unauthorized": "Bitte erneut anmelden.",
+  "errors.unknown": "Unbekannter Fehler."
+}

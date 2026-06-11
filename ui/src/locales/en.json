@@ -1,0 +1,32 @@
+{
+  "common.login": "Sign in",
+  "common.logout": "Sign out",
+  "common.password": "Password",
+  "common.theme.toggle": "Toggle theme",
+  "common.language": "Language",
+  "common.language.de": "German",
+  "common.language.en": "English",
+
+  "nav.uebersicht": "Overview",
+  "nav.reisen": "Trips",
+  "nav.export": "Export",
+  "nav.einstellungen": "Settings",
+
+  "pages.login.title": "Sign in",
+  "pages.login.submit": "Sign in",
+  "pages.login.password_placeholder": "Password",
+  "pages.uebersicht.title": "Overview",
+  "pages.uebersicht.placeholder": "Calendar, metrics and heatmap will arrive in Phase 2.B.",
+  "pages.reisen.title": "Trips",
+  "pages.reisen.placeholder": "Trip list and detail will arrive in Phase 2.C.",
+  "pages.export.title": "Export",
+  "pages.export.placeholder": "Export dialog will arrive in Phase 3.",
+  "pages.einstellungen.title": "Settings",
+  "pages.einstellungen.placeholder": "Default week, federal state and rate display will arrive in Phase 2.C.",
+
+  "errors.invalid_password": "Wrong password.",
+  "errors.invalid_body": "Invalid input.",
+  "errors.network": "Network error. Please try again.",
+  "errors.unauthorized": "Please sign in again.",
+  "errors.unknown": "Unknown error."
+}
