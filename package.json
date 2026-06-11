@@ -1,0 +1,18 @@
+{
+  "name": "reisekontor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:domain": "vitest run src/domain",
+    "lint": "biome check --write src",
+    "lint:check": "biome check src",
+    "typecheck": "tsc --noEmit"
+  }
+}
