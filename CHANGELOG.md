@@ -7,6 +7,8 @@ Versionierung: [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.1.0] — 2026-06-11
+
 ### Added
 - Projekt-Skelett: pnpm-Workspace, TypeScript strict, Vitest, Biome.
 - `config/app.yaml` mit Sätzen 2026, Standardwoche, Bundesland NI.
