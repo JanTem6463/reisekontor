@@ -8,6 +8,7 @@ import { requestLogger } from "./middleware/request-logger.ts";
 import { createAuthRouter } from "./routes/auth.ts";
 import { createChecksRouter } from "./routes/checks.ts";
 import { createDaysRouter } from "./routes/days.ts";
+import { createExportRouter } from "./routes/export.ts";
 import { createHealthRouter } from "./routes/health.ts";
 import { createHolidaysRouter } from "./routes/holidays.ts";
 import { createSettingsRouter } from "./routes/settings.ts";
@@ -48,6 +49,7 @@ export function createServer(deps: ServerDeps): Hono {
   app.route("/api/holidays", createHolidaysRouter({ db: deps.db, config: deps.config }));
   app.route("/api/checks", createChecksRouter({ db: deps.db }));
   app.route("/api/settings", createSettingsRouter({ db: deps.db, config: deps.config }));
+  app.route("/api/export", createExportRouter({ db: deps.db, config: deps.config }));
 
   // 404 für alles andere — UI kommt in Phase 2
   app.notFound((c) => c.json({ error: "not_found", hint: "UI kommt in Phase 2" }, 404));
