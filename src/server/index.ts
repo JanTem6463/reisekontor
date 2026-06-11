@@ -4,9 +4,11 @@ import { type AppConfig, loadConfig } from "../config/index.ts";
 import { type Db, createDb } from "../db/client.ts";
 import { logger as appLogger } from "../shared/logger.ts";
 import { authMiddleware } from "./middleware/auth.ts";
+import { requestLogger } from "./middleware/request-logger.ts";
 import { createAuthRouter } from "./routes/auth.ts";
 import { createDaysRouter } from "./routes/days.ts";
 import { createHealthRouter } from "./routes/health.ts";
+import { createSummaryRouter } from "./routes/summary.ts";
 import { createTripsRouter } from "./routes/trips.ts";
 
 export interface ServerDeps {
@@ -19,6 +21,9 @@ export interface ServerDeps {
 
 export function createServer(deps: ServerDeps): Hono {
   const app = new Hono();
+
+  // Request-Logger zuerst, damit auch 401/404/500 geloggt werden
+  app.use("*", requestLogger());
 
   // /api/auth: kein Auth-Middleware
   app.route(
@@ -36,6 +41,7 @@ export function createServer(deps: ServerDeps): Hono {
   app.route("/api/health", createHealthRouter());
   app.route("/api/days", createDaysRouter({ db: deps.db }));
   app.route("/api/trips", createTripsRouter({ db: deps.db }));
+  app.route("/api/summary", createSummaryRouter({ db: deps.db, config: deps.config }));
 
   // 404 für alles andere — UI kommt in Phase 2
   app.notFound((c) => c.json({ error: "not_found", hint: "UI kommt in Phase 2" }, 404));
