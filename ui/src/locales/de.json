@@ -171,5 +171,15 @@
   "errors.internal_error": "Interner Fehler. Bitte erneut versuchen.",
   "errors.invalid_bundesland_in_settings": "Ungültiges Bundesland.",
   "errors.invalid_standardwoche": "Ungültige Standardwoche.",
-  "errors.invalid_trip_dates": "Ungültige Reisedaten."
+  "errors.invalid_trip_dates": "Ungültige Reisedaten.",
+  "errors.invalid_format": "Ungültiges Format.",
+
+  "export.toast.success": "Download gestartet",
+  "export.format.pdf": "PDF",
+  "export.format.xlsx": "Excel",
+  "export.format.csv": "CSV",
+  "export.reisekosten.title": "Reisekosten",
+  "export.reisekosten.description": "Tagesgenaue Aufstellung aller Reisetage mit Mahlzeitenkürzungen und absetzbarem Mehraufwand.",
+  "export.homeoffice.title": "Homeoffice",
+  "export.homeoffice.description": "Tagesgenaue Liste der Homeoffice-Tage mit Pauschale und Höchstbetrags-Status."
 }

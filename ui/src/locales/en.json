@@ -171,5 +171,15 @@
   "errors.internal_error": "Internal error. Please try again.",
   "errors.invalid_bundesland_in_settings": "Invalid federal state.",
   "errors.invalid_standardwoche": "Invalid default week.",
-  "errors.invalid_trip_dates": "Invalid trip dates."
+  "errors.invalid_trip_dates": "Invalid trip dates.",
+  "errors.invalid_format": "Invalid format.",
+
+  "export.toast.success": "Download started",
+  "export.format.pdf": "PDF",
+  "export.format.xlsx": "Excel",
+  "export.format.csv": "CSV",
+  "export.reisekosten.title": "Travel expenses",
+  "export.reisekosten.description": "Day-by-day list of all travel days with meal deductions and deductible expenses.",
+  "export.homeoffice.title": "Home office",
+  "export.homeoffice.description": "Day-by-day list of home-office days with allowance and cap status."
 }

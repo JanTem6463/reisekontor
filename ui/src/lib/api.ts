@@ -193,3 +193,40 @@ export const api = {
       body: JSON.stringify(body),
     }),
 };
+
+export type ExportKind = "reisekosten" | "homeoffice";
+export type ExportFormat = "pdf" | "xlsx" | "csv";
+
+function extractFilename(disposition: string | null, fallback: string): string {
+  if (!disposition) return fallback;
+  const match = /filename="?([^"]+)"?/.exec(disposition);
+  return match?.[1] ?? fallback;
+}
+
+export async function downloadExport(
+  kind: ExportKind,
+  year: number,
+  format: ExportFormat,
+): Promise<void> {
+  const res = await fetch(`/api/export/${kind}?year=${year}&format=${format}`, {
+    credentials: "same-origin",
+  });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new ApiError(res.status, body.error ?? "unknown");
+  }
+  const blob = await res.blob();
+  const filename = extractFilename(
+    res.headers.get("content-disposition"),
+    `${kind}-${year}.${format}`,
+  );
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}

@@ -1,16 +1,17 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ExportPanel } from "@/components/export/ExportPanel";
+import { YearSelector } from "@/components/uebersicht/YearSelector";
 import { useTranslation } from "react-i18next";
 
 export default function Export() {
   const { t } = useTranslation();
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("pages.export.title")}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">{t("pages.export.placeholder")}</p>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">{t("pages.export.title")}</h1>
+        <YearSelector />
+      </div>
+      <ExportPanel kind="reisekosten" />
+      <ExportPanel kind="homeoffice" />
+    </div>
   );
 }
