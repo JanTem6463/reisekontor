@@ -1,0 +1,40 @@
+name: reisekontor
+
+# =============================================================================
+# Production-Compose für reisekontor auf dem Hetzner-Server.
+# Nutzt das externe Docker-Network "proxy-net", über das der finanz-caddy-
+# Container (aus dem Finanz-App-Stack) reverse-proxyt. KEIN host-port-binding —
+# Caddy erreicht reisekontor über Docker-DNS unter "reisekontor:3030".
+#
+# Aufruf auf der Box:
+#   cd /home/jan/reisekontor
+#   docker compose -f docker/docker-compose.prod.yaml --env-file ../.env up -d --build
+# =============================================================================
+
+services:
+  reisekontor:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: reisekontor:latest
+    container_name: reisekontor
+    env_file:
+      - ../.env
+    environment:
+      - NODE_ENV=production
+      - APP_CONFIG_PATH=/app/config/app.yaml
+      - DATABASE_PATH=/app/data/reisekontor.db
+      - PORT=3030
+    volumes:
+      - reisekontor-data:/app/data
+    restart: unless-stopped
+    networks: [proxy-net]
+    mem_limit: 512m
+    memswap_limit: 512m
+
+volumes:
+  reisekontor-data:
+
+networks:
+  proxy-net:
+    external: true
