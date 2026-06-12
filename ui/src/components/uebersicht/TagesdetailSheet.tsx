@@ -34,9 +34,10 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   date: string | null;
   existing: DayEntryDto | null;
+  onCreateTrip?: (date: string) => void;
 }
 
-export function TagesdetailSheet({ open, onOpenChange, date, existing }: Props) {
+export function TagesdetailSheet({ open, onOpenChange, date, existing, onCreateTrip }: Props) {
   const { t } = useTranslation();
   const { year } = useYear();
   const upsert = useUpsertDay(year);
@@ -206,13 +207,24 @@ export function TagesdetailSheet({ open, onOpenChange, date, existing }: Props) 
             </>
           )}
 
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-2 pt-4 flex-wrap">
             <Button onClick={handleSave} disabled={upsert.isPending}>
               {t("tagesdetail.save")}
             </Button>
             {existing && !isTripDay && (
               <Button variant="destructive" onClick={handleDelete} disabled={del.isPending}>
                 {t("tagesdetail.delete")}
+              </Button>
+            )}
+            {!existing && onCreateTrip && date && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  onCreateTrip(date);
+                  onOpenChange(false);
+                }}
+              >
+                {t("tagesdetail.create_trip")}
               </Button>
             )}
             <Button variant="ghost" onClick={() => onOpenChange(false)}>

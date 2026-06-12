@@ -31,6 +31,7 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editTrip: TripWithDays | null;
+  initialStartDate?: string;
 }
 
 type RowState = {
@@ -59,7 +60,7 @@ function defaultRow(): RowState {
   };
 }
 
-export function ReiseFormDialog({ open, onOpenChange, editTrip }: Props) {
+export function ReiseFormDialog({ open, onOpenChange, editTrip, initialStartDate }: Props) {
   const { t } = useTranslation();
   const { year } = useYear();
   const create = useCreateTrip(year);
@@ -105,14 +106,14 @@ export function ReiseFormDialog({ open, onOpenChange, editTrip }: Props) {
       }
       setRowsByDate(map);
     } else {
-      const today = new Date().toISOString().slice(0, 10);
-      setStartDate(today);
-      setEndDate(today);
+      const start = initialStartDate ?? new Date().toISOString().slice(0, 10);
+      setStartDate(start);
+      setEndDate(start);
       setEndDateTouched(false);
       setUebernachtung(true);
       setRowsByDate({});
     }
-  }, [open, editTrip]);
+  }, [open, editTrip, initialStartDate]);
 
   const preview = useMemo(
     () => classifyTripPreview(startDate, endDate, uebernachtung),

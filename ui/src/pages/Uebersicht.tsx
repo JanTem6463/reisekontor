@@ -1,3 +1,4 @@
+import { ReiseFormDialog } from "@/components/reisen/ReiseFormDialog";
 import { KennzahlenCards } from "@/components/uebersicht/KennzahlenCards";
 import { Monatskalender } from "@/components/uebersicht/Monatskalender";
 import { PlausibilitaetList } from "@/components/uebersicht/PlausibilitaetList";
@@ -17,8 +18,15 @@ export default function Uebersicht() {
   const [month, setMonth] = useState(() => new Date().getMonth() + 1);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [tripFormOpen, setTripFormOpen] = useState(false);
+  const [tripStartDate, setTripStartDate] = useState<string | null>(null);
 
   const existing = days?.find((d) => d.date === selectedDate) ?? null;
+
+  function handleCreateTripFromDate(date: string) {
+    setTripStartDate(date);
+    setTripFormOpen(true);
+  }
 
   function handleDayClick(iso: string) {
     setSelectedDate(iso);
@@ -68,6 +76,14 @@ export default function Uebersicht() {
         onOpenChange={setSheetOpen}
         date={selectedDate}
         existing={existing}
+        onCreateTrip={handleCreateTripFromDate}
+      />
+
+      <ReiseFormDialog
+        open={tripFormOpen}
+        onOpenChange={setTripFormOpen}
+        editTrip={null}
+        {...(tripStartDate ? { initialStartDate: tripStartDate } : {})}
       />
     </div>
   );

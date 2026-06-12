@@ -74,6 +74,7 @@
   "tagesdetail.save": "Save",
   "tagesdetail.delete": "Delete",
   "tagesdetail.cancel": "Cancel",
+  "tagesdetail.create_trip": "Start trip here",
   "tagesdetail.trip_locked_hint": "Trip day — type is managed via the Trips page.",
   "tagesdetail.saved": "Day saved",
   "tagesdetail.deleted": "Day deleted",

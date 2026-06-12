@@ -74,6 +74,7 @@
   "tagesdetail.save": "Speichern",
   "tagesdetail.delete": "Löschen",
   "tagesdetail.cancel": "Abbrechen",
+  "tagesdetail.create_trip": "Reise hier starten",
   "tagesdetail.trip_locked_hint": "Reise-Tag — Typ wird über die Reisen-Seite gesteuert.",
   "tagesdetail.saved": "Tag gespeichert",
   "tagesdetail.deleted": "Tag gelöscht",
