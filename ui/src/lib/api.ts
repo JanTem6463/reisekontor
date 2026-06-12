@@ -204,7 +204,7 @@ export const api = {
     }),
 };
 
-export type ExportKind = "reisekosten" | "homeoffice";
+export type ExportKind = "reisekosten" | "homeoffice" | "steuer";
 export type ExportFormat = "pdf" | "xlsx" | "csv";
 
 function extractFilename(disposition: string | null, fallback: string): string {

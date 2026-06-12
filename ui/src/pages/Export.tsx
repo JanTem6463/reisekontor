@@ -10,6 +10,7 @@ export default function Export() {
         <h1 className="text-2xl font-semibold">{t("pages.export.title")}</h1>
         <YearSelector />
       </div>
+      <ExportPanel kind="steuer" />
       <ExportPanel kind="reisekosten" />
       <ExportPanel kind="homeoffice" />
     </div>

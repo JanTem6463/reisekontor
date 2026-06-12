@@ -187,5 +187,7 @@
   "export.reisekosten.title": "Travel expenses",
   "export.reisekosten.description": "Day-by-day list of all travel days with meal deductions and deductible expenses.",
   "export.homeoffice.title": "Home office",
-  "export.homeoffice.description": "Day-by-day list of home-office days with allowance and cap status."
+  "export.homeoffice.description": "Day-by-day list of home-office days with allowance and cap status.",
+  "export.steuer.title": "Tax summary",
+  "export.steuer.description": "Compact overview for the tax declaration: personal data, trip days by type, deductions, deductible expenses and home-office days."
 }

@@ -76,6 +76,76 @@ export function buildReisekostenRows(db: Db, year: number, config: AppConfig): R
   };
 }
 
+export interface SteuerUebersichtExport {
+  year: number;
+  personal: {
+    name: string;
+    strasse: string;
+    plz: string;
+    ort: string;
+    arbeitgeber: string;
+    eintrittsdatum: string;
+  };
+  abwesenheit_8h_inland: number;
+  an_abreise_inland: number;
+  abwesenheit_24h_inland: number;
+  kuerzung_inland_cent: number;
+  anrechenbar_inland_cent: number;
+  anrechenbar_ausland_cent: number | null;
+  homeoffice_tage: number;
+}
+
+export function buildSteuerUebersicht(
+  db: Db,
+  year: number,
+  config: AppConfig,
+): SteuerUebersichtExport {
+  const rates = config.ratesForYear(year);
+  const yearConfig = config.raw.jahre[String(year)];
+  if (!yearConfig) throw new Error(`Keine Sätze für Jahr ${year}`);
+
+  const dbRows = daysService.listForYear(db, year);
+  const { standardwoche } = getEffectiveSettings(db, config);
+  const effectiveHo = computeEffectiveHomeofficeDates(year, dbRows, standardwoche);
+
+  let abwesenheit_8h_inland = 0;
+  let an_abreise_inland = 0;
+  let abwesenheit_24h_inland = 0;
+  let kuerzung_inland_cent = 0;
+  let anrechenbar_inland_cent = 0;
+
+  for (const d of dbRows) {
+    const t = d.type as DayType;
+    if (!REISE_TYPES.includes(t)) continue;
+    if (t === "reise_eintaegig") abwesenheit_8h_inland += 1;
+    else if (t === "reise_voll") abwesenheit_24h_inland += 1;
+    else if (t === "reise_anreise" || t === "reise_abreise") an_abreise_inland += 1;
+    const domain = toDomainDay(d);
+    kuerzung_inland_cent += kuerzungCent(domain.meals, rates);
+    anrechenbar_inland_cent += verpflegungProTagCent(domain, rates);
+  }
+
+  const p = config.raw.personal ?? {};
+  return {
+    year,
+    personal: {
+      name: p.name ?? "",
+      strasse: p.strasse ?? "",
+      plz: p.plz ?? "",
+      ort: p.ort ?? "",
+      arbeitgeber: p.arbeitgeber ?? "",
+      eintrittsdatum: p.eintrittsdatum ?? "",
+    },
+    abwesenheit_8h_inland,
+    an_abreise_inland,
+    abwesenheit_24h_inland,
+    kuerzung_inland_cent,
+    anrechenbar_inland_cent,
+    anrechenbar_ausland_cent: null,
+    homeoffice_tage: effectiveHo.length,
+  };
+}
+
 export function buildHomeofficeRows(db: Db, year: number, config: AppConfig): HomeofficeExport {
   const rates = config.ratesForYear(year);
   const yearConfig = config.raw.jahre[String(year)];

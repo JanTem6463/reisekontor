@@ -1,4 +1,8 @@
-import type { HomeofficeExport, ReisekostenExport } from "../services/export.ts";
+import type {
+  HomeofficeExport,
+  ReisekostenExport,
+  SteuerUebersichtExport,
+} from "../services/export.ts";
 
 const BOM = "﻿";
 const SEP = ";";
@@ -59,6 +63,30 @@ export function reisekostenToCsv(data: ReisekostenExport): Buffer {
   ].join(SEP);
 
   const lines = [header, ...body, footer].join(NL);
+  return Buffer.from(BOM + lines, "utf8");
+}
+
+export function steuerUebersichtToCsv(data: SteuerUebersichtExport): Buffer {
+  const p = data.personal;
+  const stamm = [
+    `Name${SEP}${p.name}`,
+    `Strasse${SEP}${p.strasse}`,
+    `PLZ Ort${SEP}${p.plz} ${p.ort}`,
+    `Arbeitgeber${SEP}${p.arbeitgeber}`,
+    `Eintrittsdatum${SEP}${p.eintrittsdatum}`,
+  ];
+  const kennzahlen = [
+    `Abwesenheit von mehr als 8 Stunden im Inland${SEP}${data.abwesenheit_8h_inland}`,
+    `An- und Abreisetage bei einer mehrtägigen Auswärtstätigkeit mit Übernachtung im Inland${SEP}${data.an_abreise_inland}`,
+    `Abwesenheit von 24 Stunden im Inland${SEP}${data.abwesenheit_24h_inland}`,
+    `Kürzungsbeträge wegen Mahlzeitengestellung${SEP}${formatEur(data.kuerzung_inland_cent)}`,
+    `Anrechenbare Mehraufwendungen${SEP}${formatEur(data.anrechenbar_inland_cent)}`,
+    `Summe aller Mehraufwendungen für Verpflegung bei einer Auswärtstätigkeit im Ausland${SEP}${
+      data.anrechenbar_ausland_cent === null ? "-" : formatEur(data.anrechenbar_ausland_cent)
+    }`,
+    `Homeoffice Tage${SEP}${data.homeoffice_tage}`,
+  ];
+  const lines = [`Steuer-Übersicht ${data.year}`, "", ...stamm, "", ...kennzahlen].join(NL);
   return Buffer.from(BOM + lines, "utf8");
 }
 

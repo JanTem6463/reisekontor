@@ -2,10 +2,13 @@ import { beforeEach, describe, expect, it } from "vitest";
 import type { AppConfig } from "../config/index.ts";
 import { type Db, createDb } from "../db/client.ts";
 import * as daysService from "./days.ts";
-import { buildHomeofficeRows, buildReisekostenRows } from "./export.ts";
+import { buildHomeofficeRows, buildReisekostenRows, buildSteuerUebersicht } from "./export.ts";
 import * as tripsService from "./trips.ts";
 
-function buildFixtureConfig(standardwoche: AppConfig["raw"]["standardwoche"]): AppConfig {
+function buildFixtureConfig(
+  standardwoche: AppConfig["raw"]["standardwoche"],
+  personal?: AppConfig["raw"]["personal"],
+): AppConfig {
   return {
     raw: {
       jahre: {
@@ -21,6 +24,7 @@ function buildFixtureConfig(standardwoche: AppConfig["raw"]["standardwoche"]): A
       },
       standardwoche,
       feiertage: { bundesland: "NI" },
+      ...(personal ? { personal } : {}),
     },
     ratesForYear: (year) => {
       if (year !== 2026) throw new Error(`Keine Sätze für ${year}`);
@@ -243,5 +247,76 @@ describe("buildHomeofficeRows", () => {
     const r = buildHomeofficeRows(db, 2026, cfg);
     expect(r.rows.some((x) => x.date === "2026-04-02")).toBe(false);
     expect(r.anzahl_tage).toBe(260);
+  });
+});
+
+describe("buildSteuerUebersicht", () => {
+  it("leeres Jahr → alle KPIs 0, Personal aus Config", () => {
+    const cfg = buildFixtureConfig(NO_AUTO_HO, {
+      name: "Jan Test",
+      strasse: "Teststr. 1",
+      plz: "12345",
+      ort: "Teststadt",
+      arbeitgeber: "TestAG",
+      eintrittsdatum: "01.01.2020",
+    });
+    const r = buildSteuerUebersicht(db, 2026, cfg);
+    expect(r.year).toBe(2026);
+    expect(r.personal.name).toBe("Jan Test");
+    expect(r.personal.strasse).toBe("Teststr. 1");
+    expect(r.personal.eintrittsdatum).toBe("01.01.2020");
+    expect(r.abwesenheit_8h_inland).toBe(0);
+    expect(r.an_abreise_inland).toBe(0);
+    expect(r.abwesenheit_24h_inland).toBe(0);
+    expect(r.kuerzung_inland_cent).toBe(0);
+    expect(r.anrechenbar_inland_cent).toBe(0);
+    expect(r.anrechenbar_ausland_cent).toBeNull();
+    expect(r.homeoffice_tage).toBe(0);
+  });
+
+  it("3-Tages-Reise mit Übernachtung + 1 eintägige + Frühstück-Kürzung", () => {
+    tripsService.create(db, {
+      startDate: "2026-04-01",
+      endDate: "2026-04-03",
+      uebernachtung: true,
+    });
+    // Eintägige Reise
+    tripsService.create(db, {
+      startDate: "2026-05-01",
+      endDate: "2026-05-01",
+      uebernachtung: false,
+    });
+    // Frühstück am vollen Tag → 560 Cent Kürzung
+    daysService.upsert(db, {
+      date: "2026-04-02",
+      year: 2026,
+      type: "reise_voll",
+      homeoffice: false,
+      tripId: null,
+      fruehstueck: true,
+      mittag: false,
+      abend: false,
+      zuzahlungCent: 0,
+    });
+
+    const r = buildSteuerUebersicht(db, 2026, fixtureConfig);
+    expect(r.abwesenheit_8h_inland).toBe(1); // eintägig
+    expect(r.an_abreise_inland).toBe(2); // Anreise + Abreise
+    expect(r.abwesenheit_24h_inland).toBe(1); // voller Tag
+    expect(r.kuerzung_inland_cent).toBe(560);
+    // Pauschalen: 14 + 28 + 14 + 14 = 70 €; Kürzung 5,60 → 64,40
+    expect(r.anrechenbar_inland_cent).toBe(7000 - 560);
+  });
+
+  it("Personal-Felder fehlen → leere Strings", () => {
+    const r = buildSteuerUebersicht(db, 2026, fixtureConfig); // ohne personal
+    expect(r.personal.name).toBe("");
+    expect(r.personal.eintrittsdatum).toBe("");
+  });
+
+  it("HO-Tage kommen aus standardwoche-Auto", () => {
+    const cfg = buildFixtureConfig(MO_FR);
+    const r = buildSteuerUebersicht(db, 2026, cfg);
+    expect(r.homeoffice_tage).toBe(261); // alle Mo-Fr 2026
   });
 });

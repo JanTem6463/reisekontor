@@ -187,5 +187,7 @@
   "export.reisekosten.title": "Reisekosten",
   "export.reisekosten.description": "Tagesgenaue Aufstellung aller Reisetage mit Mahlzeitenkürzungen und absetzbarem Mehraufwand.",
   "export.homeoffice.title": "Homeoffice",
-  "export.homeoffice.description": "Tagesgenaue Liste der Homeoffice-Tage mit Pauschale und Höchstbetrags-Status."
+  "export.homeoffice.description": "Tagesgenaue Liste der Homeoffice-Tage mit Pauschale und Höchstbetrags-Status.",
+  "export.steuer.title": "Steuer-Übersicht",
+  "export.steuer.description": "Kompakte Übersicht für die Steuererklärung: Stammdaten, Reisetage nach Typ, Kürzungen, absetzbare Mehraufwendungen und Homeoffice-Tage."
 }

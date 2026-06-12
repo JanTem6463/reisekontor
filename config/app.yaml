@@ -23,3 +23,11 @@ standardwoche:                     # true = automatisch Homeoffice
 
 feiertage:
   bundesland: NI                   # Niedersachsen
+
+personal:                          # Stammdaten für den Steuer-Übersicht-Export
+  name: Jan Temminghoff
+  strasse: Steenpatt 2
+  plz: "46286"
+  ort: Dorsten
+  arbeitgeber: mindsquare AG
+  eintrittsdatum: 01.10.2017

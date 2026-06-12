@@ -1,5 +1,9 @@
 import PDFDocument from "pdfkit";
-import type { HomeofficeExport, ReisekostenExport } from "../services/export.ts";
+import type {
+  HomeofficeExport,
+  ReisekostenExport,
+  SteuerUebersichtExport,
+} from "../services/export.ts";
 
 const DAY_TYPE_LABELS_DE: Record<string, string> = {
   reise_anreise: "Reise – Anreise",
@@ -92,6 +96,67 @@ export async function reisekostenToPdf(data: ReisekostenExport): Promise<Buffer>
       data.summe_kuerzung_cent,
     )}   Absetzbar: ${formatEur(data.summe_absetzbar_cent)}`,
   );
+
+  return bufferDoc(doc);
+}
+
+export async function steuerUebersichtToPdf(data: SteuerUebersichtExport): Promise<Buffer> {
+  const doc = new PDFDocument({ size: "A4", margin: 40 });
+
+  doc.fontSize(16).text(`Steuer-Übersicht ${data.year}`, { align: "left" });
+  doc.fontSize(9).text(`Erstellt am ${new Date().toISOString().slice(0, 10)}`, { align: "right" });
+  doc.moveDown();
+
+  doc.font("Helvetica-Bold").fontSize(11).text("Stammdaten");
+  doc.font("Helvetica").fontSize(10);
+  const p = data.personal;
+  doc.text(p.name);
+  doc.text(p.strasse);
+  doc.text(`${p.plz} ${p.ort}`.trim());
+  doc.text(`Arbeitgeber: ${p.arbeitgeber}`);
+  doc.text(`Eintrittsdatum: ${p.eintrittsdatum}`);
+  doc.moveDown();
+
+  doc.font("Helvetica-Bold").fontSize(11).text("Kennzahlen");
+  doc.font("Helvetica").fontSize(10);
+  doc.moveDown(0.3);
+
+  const rows: Array<{ value: string; label: string }> = [
+    {
+      value: String(data.abwesenheit_8h_inland),
+      label: "Abwesenheit von mehr als 8 Stunden im Inland",
+    },
+    {
+      value: String(data.an_abreise_inland),
+      label:
+        "An- und Abreisetage bei einer mehrtägigen Auswärtstätigkeit mit Übernachtung im Inland",
+    },
+    { value: String(data.abwesenheit_24h_inland), label: "Abwesenheit von 24 Stunden im Inland" },
+    {
+      value: formatEur(data.kuerzung_inland_cent),
+      label:
+        "Kürzungsbeträge wegen Mahlzeitengestellung (eigene Zuzahlungen sind ggf. gegenzurechnen)",
+    },
+    {
+      value: formatEur(data.anrechenbar_inland_cent),
+      label: "Anrechenbare Mehraufwendungen",
+    },
+    {
+      value:
+        data.anrechenbar_ausland_cent === null ? "-" : formatEur(data.anrechenbar_ausland_cent),
+      label: "Summe aller Mehraufwendungen für Verpflegung bei einer Auswärtstätigkeit im Ausland",
+    },
+    { value: String(data.homeoffice_tage), label: "Homeoffice Tage" },
+  ];
+
+  const valueColWidth = 90;
+  const labelColWidth = 420;
+  for (const r of rows) {
+    const y = doc.y;
+    doc.text(r.value, doc.x, y, { width: valueColWidth, align: "right" });
+    doc.text(r.label, doc.x + valueColWidth + 10, y, { width: labelColWidth });
+    doc.moveDown(0.5);
+  }
 
   return bufferDoc(doc);
 }
