@@ -9,11 +9,20 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useYear } from "@/contexts/YearContext";
 import { useCreateTrip } from "@/hooks/useCreateTrip";
 import { useUpdateTrip } from "@/hooks/useUpdateTrip";
-import type { TripWithDays } from "@/lib/api";
-import { useEffect, useState } from "react";
+import type { TripDayOverride, TripWithDays } from "@/lib/api";
+import { classifyTripPreview } from "@/lib/trip-preview";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { HartResetWarnung } from "./HartResetWarnung";
@@ -24,8 +33,30 @@ interface Props {
   editTrip: TripWithDays | null;
 }
 
+type RowState = {
+  fruehstueck: boolean;
+  mittag: boolean;
+  abend: boolean;
+  zuzahlungEur: string;
+  homeoffice: boolean;
+};
+
 function countManuelleMahlzeiten(days: TripWithDays["days"]): number {
   return days.filter((d) => d.fruehstueck || d.mittag || d.abend || d.zuzahlungCent > 0).length;
+}
+
+function centToEur(cent: number): string {
+  return (cent / 100).toFixed(2).replace(".", ",");
+}
+
+function defaultRow(): RowState {
+  return {
+    fruehstueck: false,
+    mittag: false,
+    abend: false,
+    zuzahlungEur: "0,00",
+    homeoffice: false,
+  };
 }
 
 export function ReiseFormDialog({ open, onOpenChange, editTrip }: Props) {
@@ -37,6 +68,7 @@ export function ReiseFormDialog({ open, onOpenChange, editTrip }: Props) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [uebernachtung, setUebernachtung] = useState(true);
+  const [rowsByDate, setRowsByDate] = useState<Record<string, RowState>>({});
   const [warnOpen, setWarnOpen] = useState(false);
   const [warnCount, setWarnCount] = useState(0);
 
@@ -46,16 +78,60 @@ export function ReiseFormDialog({ open, onOpenChange, editTrip }: Props) {
       setStartDate(editTrip.trip.startDate);
       setEndDate(editTrip.trip.endDate);
       setUebernachtung(editTrip.trip.uebernachtung);
+      const map: Record<string, RowState> = {};
+      for (const d of editTrip.days) {
+        map[d.date] = {
+          fruehstueck: d.fruehstueck,
+          mittag: d.mittag,
+          abend: d.abend,
+          zuzahlungEur: centToEur(d.zuzahlungCent),
+          homeoffice: d.homeoffice,
+        };
+      }
+      setRowsByDate(map);
     } else {
       const today = new Date().toISOString().slice(0, 10);
       setStartDate(today);
       setEndDate(today);
       setUebernachtung(true);
+      setRowsByDate({});
     }
   }, [open, editTrip]);
 
+  const preview = useMemo(
+    () => classifyTripPreview(startDate, endDate, uebernachtung),
+    [startDate, endDate, uebernachtung],
+  );
+
+  function getRow(date: string): RowState {
+    return rowsByDate[date] ?? defaultRow();
+  }
+
+  function setRow(date: string, updater: (prev: RowState) => RowState) {
+    setRowsByDate((m) => ({ ...m, [date]: updater(m[date] ?? defaultRow()) }));
+  }
+
   async function doSubmit() {
-    const body = { startDate, endDate, uebernachtung };
+    const days: TripDayOverride[] =
+      preview?.map((p) => {
+        const r = getRow(p.date);
+        const zuzahlungCent = Math.round(
+          Number.parseFloat(r.zuzahlungEur.replace(",", ".") || "0") * 100,
+        );
+        const out: TripDayOverride = { date: p.date };
+        if (r.fruehstueck) out.fruehstueck = true;
+        if (r.mittag) out.mittag = true;
+        if (r.abend) out.abend = true;
+        if (Number.isFinite(zuzahlungCent) && zuzahlungCent > 0) {
+          out.zuzahlungCent = zuzahlungCent;
+        }
+        if (r.homeoffice && (p.type === "reise_anreise" || p.type === "reise_abreise")) {
+          out.homeoffice = true;
+        }
+        return out;
+      }) ?? [];
+
+    const body = { startDate, endDate, uebernachtung, days };
     try {
       if (editTrip) {
         await update.mutateAsync({ id: editTrip.trip.id, body });
@@ -92,7 +168,7 @@ export function ReiseFormDialog({ open, onOpenChange, editTrip }: Props) {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent>
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>
               {editTrip ? t("reisen.form.edit_title") : t("reisen.form.create_title")}
@@ -125,6 +201,95 @@ export function ReiseFormDialog({ open, onOpenChange, editTrip }: Props) {
               />
               <Label htmlFor="uebernachtung">{t("reisen.form.uebernachtung_label")}</Label>
             </div>
+            {preview && preview.length > 0 && (
+              <div className="space-y-2 pt-2 border-t">
+                <Label>{t("reisen.form.days_table_label")}</Label>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t("reisen.form.col.date")}</TableHead>
+                      <TableHead>{t("reisen.form.col.type")}</TableHead>
+                      <TableHead className="text-center">{t("meals.fruehstueck")}</TableHead>
+                      <TableHead className="text-center">{t("meals.mittag")}</TableHead>
+                      <TableHead className="text-center">{t("meals.abend")}</TableHead>
+                      <TableHead>{t("reisen.form.col.zuzahlung")}</TableHead>
+                      <TableHead className="text-center">{t("reisen.form.col.ho_combo")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {preview.map((p) => {
+                      const r = getRow(p.date);
+                      const isCombo = p.type === "reise_anreise" || p.type === "reise_abreise";
+                      return (
+                        <TableRow key={p.date}>
+                          <TableCell>{p.date}</TableCell>
+                          <TableCell className="whitespace-nowrap text-xs">
+                            {t(`day_types.${p.type}`)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={r.fruehstueck}
+                              onCheckedChange={(c) =>
+                                setRow(p.date, (prev) => ({
+                                  ...prev,
+                                  fruehstueck: c === true,
+                                }))
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={r.mittag}
+                              onCheckedChange={(c) =>
+                                setRow(p.date, (prev) => ({ ...prev, mittag: c === true }))
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={r.abend}
+                              onCheckedChange={(c) =>
+                                setRow(p.date, (prev) => ({ ...prev, abend: c === true }))
+                              }
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="text"
+                              inputMode="decimal"
+                              value={r.zuzahlungEur}
+                              onChange={(e) =>
+                                setRow(p.date, (prev) => ({
+                                  ...prev,
+                                  zuzahlungEur: e.target.value,
+                                }))
+                              }
+                              className="h-7 w-20"
+                              placeholder="0,00"
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {isCombo ? (
+                              <Checkbox
+                                checked={r.homeoffice}
+                                onCheckedChange={(c) =>
+                                  setRow(p.date, (prev) => ({
+                                    ...prev,
+                                    homeoffice: c === true,
+                                  }))
+                                }
+                              />
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => onOpenChange(false)}>

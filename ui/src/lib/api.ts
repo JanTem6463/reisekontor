@@ -122,10 +122,20 @@ export interface TripWithDays {
   days: DayEntryDto[];
 }
 
+export interface TripDayOverride {
+  date: string;
+  fruehstueck?: boolean;
+  mittag?: boolean;
+  abend?: boolean;
+  zuzahlungCent?: number;
+  homeoffice?: boolean;
+}
+
 export interface TripBody {
   startDate: string;
   endDate: string;
   uebernachtung: boolean;
+  days?: TripDayOverride[];
 }
 
 export interface Standardwoche {
