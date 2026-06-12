@@ -15,8 +15,11 @@ jobs:
           key: ${{ secrets.HETZNER_SSH_KEY }}
           script: |
             set -e
-            cd /opt/reisekontor
+            cd ~/reisekontor
+            # SSH-Config (~/.ssh/config "Host github-reisekontor") leitet
+            # github.com auf einen eigenen Deploy-Key — git muss diesen Host
+            # nutzen, weil der finanz-app-Deploy-Key nicht geteilt werden kann.
             git fetch origin main
             git reset --hard origin/main
-            docker compose -f docker/docker-compose.yaml up -d --build
-            docker compose -f docker/docker-compose.yaml ps
+            docker compose -f docker/docker-compose.prod.yaml up -d --build
+            docker compose -f docker/docker-compose.prod.yaml ps
