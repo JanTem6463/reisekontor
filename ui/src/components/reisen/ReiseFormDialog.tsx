@@ -67,16 +67,31 @@ export function ReiseFormDialog({ open, onOpenChange, editTrip }: Props) {
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [endDateTouched, setEndDateTouched] = useState(false);
   const [uebernachtung, setUebernachtung] = useState(true);
   const [rowsByDate, setRowsByDate] = useState<Record<string, RowState>>({});
   const [warnOpen, setWarnOpen] = useState(false);
   const [warnCount, setWarnCount] = useState(0);
+
+  // Beim Ändern von startDate end-Datum mitziehen, solange User es nicht
+  // explizit angefasst hat. Verhindert dass beim Anlegen einer Vergangenheits-
+  // Reise (z.B. startDate = 01.03., endDate noch default = today) eine
+  // dreistellige Tagesliste erzeugt wird, die das endDate-Feld verdeckt.
+  function handleStartDateChange(v: string) {
+    setStartDate(v);
+    if (!endDateTouched) setEndDate(v);
+  }
+  function handleEndDateChange(v: string) {
+    setEndDate(v);
+    setEndDateTouched(true);
+  }
 
   useEffect(() => {
     if (!open) return;
     if (editTrip) {
       setStartDate(editTrip.trip.startDate);
       setEndDate(editTrip.trip.endDate);
+      setEndDateTouched(true);
       setUebernachtung(editTrip.trip.uebernachtung);
       const map: Record<string, RowState> = {};
       for (const d of editTrip.days) {
@@ -93,6 +108,7 @@ export function ReiseFormDialog({ open, onOpenChange, editTrip }: Props) {
       const today = new Date().toISOString().slice(0, 10);
       setStartDate(today);
       setEndDate(today);
+      setEndDateTouched(false);
       setUebernachtung(true);
       setRowsByDate({});
     }
@@ -168,20 +184,20 @@ export function ReiseFormDialog({ open, onOpenChange, editTrip }: Props) {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>
               {editTrip ? t("reisen.form.edit_title") : t("reisen.form.create_title")}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto pr-2 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="start">{t("reisen.form.start_date")}</Label>
               <Input
                 id="start"
                 type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e) => handleStartDateChange(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -190,7 +206,7 @@ export function ReiseFormDialog({ open, onOpenChange, editTrip }: Props) {
                 id="end"
                 type="date"
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(e) => handleEndDateChange(e.target.value)}
               />
             </div>
             <div className="flex items-center space-x-2">
