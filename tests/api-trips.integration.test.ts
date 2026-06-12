@@ -161,4 +161,65 @@ describe("/api/trips", () => {
     const updated = (await update.json()) as { days: Array<unknown> };
     expect(updated.days).toHaveLength(5);
   });
+
+  it("POST mit days-Array → Mahlzeiten + Zuzahlung gesetzt", async () => {
+    const res = await authedReq("/api/trips", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        startDate: "2026-09-01",
+        endDate: "2026-09-03",
+        uebernachtung: true,
+        days: [
+          { date: "2026-09-01", fruehstueck: true, homeoffice: true },
+          { date: "2026-09-02", mittag: true, abend: true, zuzahlungCent: 500 },
+        ],
+      }),
+    });
+    expect(res.status).toBe(201);
+    const created = (await res.json()) as {
+      days: Array<{
+        date: string;
+        fruehstueck: boolean;
+        mittag: boolean;
+        abend: boolean;
+        zuzahlungCent: number;
+        homeoffice: boolean;
+      }>;
+    };
+    const anreise = created.days.find((d) => d.date === "2026-09-01");
+    expect(anreise?.fruehstueck).toBe(true);
+    expect(anreise?.homeoffice).toBe(true);
+    const voll = created.days.find((d) => d.date === "2026-09-02");
+    expect(voll?.mittag).toBe(true);
+    expect(voll?.zuzahlungCent).toBe(500);
+  });
+
+  it("PUT mit days-Array überschreibt", async () => {
+    const create = await authedReq("/api/trips", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        startDate: "2026-10-01",
+        endDate: "2026-10-02",
+        uebernachtung: true,
+      }),
+    });
+    const { trip } = (await create.json()) as { trip: { id: number } };
+    const res = await authedReq(`/api/trips/${trip.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        startDate: "2026-10-01",
+        endDate: "2026-10-02",
+        uebernachtung: true,
+        days: [{ date: "2026-10-01", fruehstueck: true }],
+      }),
+    });
+    expect(res.status).toBe(200);
+    const updated = (await res.json()) as {
+      days: Array<{ date: string; fruehstueck: boolean }>;
+    };
+    expect(updated.days.find((d) => d.date === "2026-10-01")?.fruehstueck).toBe(true);
+  });
 });

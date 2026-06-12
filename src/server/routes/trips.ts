@@ -1,15 +1,26 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import type { Db } from "../../db/client.ts";
+import type { DayOverride } from "../../services/trips.ts";
 import * as tripsService from "../../services/trips.ts";
 
 const DateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const YearSchema = z.coerce.number().int().min(2020).max(2100);
 
+const DayOverrideSchema = z.object({
+  date: DateSchema,
+  fruehstueck: z.boolean().optional(),
+  mittag: z.boolean().optional(),
+  abend: z.boolean().optional(),
+  zuzahlungCent: z.number().int().nonnegative().optional(),
+  homeoffice: z.boolean().optional(),
+});
+
 const TripBody = z.object({
   startDate: DateSchema,
   endDate: DateSchema,
   uebernachtung: z.boolean(),
+  days: z.array(DayOverrideSchema).optional().default([]),
 });
 
 export interface TripsRouteDeps {
@@ -58,7 +69,24 @@ export function createTripsRouter(deps: TripsRouteDeps): Hono {
     const parsed = TripBody.safeParse(body);
     if (!parsed.success) return c.json({ error: "invalid_body" }, 400);
     try {
-      const result = tripsService.create(deps.db, parsed.data);
+      const cleanedDays = parsed.data.days.map((d) => {
+        const o: DayOverride = { date: d.date };
+        if (d.fruehstueck !== undefined) o.fruehstueck = d.fruehstueck;
+        if (d.mittag !== undefined) o.mittag = d.mittag;
+        if (d.abend !== undefined) o.abend = d.abend;
+        if (d.zuzahlungCent !== undefined) o.zuzahlungCent = d.zuzahlungCent;
+        if (d.homeoffice !== undefined) o.homeoffice = d.homeoffice;
+        return o;
+      });
+      const result = tripsService.create(
+        deps.db,
+        {
+          startDate: parsed.data.startDate,
+          endDate: parsed.data.endDate,
+          uebernachtung: parsed.data.uebernachtung,
+        },
+        cleanedDays,
+      );
       return c.json(result, 201);
     } catch (err) {
       const mapped = mapServiceError(err);
@@ -80,7 +108,25 @@ export function createTripsRouter(deps: TripsRouteDeps): Hono {
     const parsed = TripBody.safeParse(body);
     if (!parsed.success) return c.json({ error: "invalid_body" }, 400);
     try {
-      const result = tripsService.update(deps.db, id, parsed.data);
+      const cleanedDays = parsed.data.days.map((d) => {
+        const o: DayOverride = { date: d.date };
+        if (d.fruehstueck !== undefined) o.fruehstueck = d.fruehstueck;
+        if (d.mittag !== undefined) o.mittag = d.mittag;
+        if (d.abend !== undefined) o.abend = d.abend;
+        if (d.zuzahlungCent !== undefined) o.zuzahlungCent = d.zuzahlungCent;
+        if (d.homeoffice !== undefined) o.homeoffice = d.homeoffice;
+        return o;
+      });
+      const result = tripsService.update(
+        deps.db,
+        id,
+        {
+          startDate: parsed.data.startDate,
+          endDate: parsed.data.endDate,
+          uebernachtung: parsed.data.uebernachtung,
+        },
+        cleanedDays,
+      );
       if (!result) return c.json({ error: "not_found" }, 404);
       return c.json(result);
     } catch (err) {
