@@ -1,14 +1,11 @@
 import type { AppConfig } from "../config/index.ts";
 import type { Db } from "../db/client.ts";
-import {
-  homeofficePauschaleCent,
-  homeofficeTage,
-  kuerzungCent,
-  verpflegungProTagCent,
-} from "../domain/pauschalen.ts";
+import { kuerzungCent, verpflegungProTagCent } from "../domain/pauschalen.ts";
 import type { DayType } from "../domain/types.ts";
 import * as daysService from "./days.ts";
+import { computeEffectiveHomeofficeDates, homeofficeBetragCent } from "./effective-days.ts";
 import { toDomainDay } from "./mappers.ts";
+import { getEffectiveSettings } from "./settings.ts";
 import * as tripsService from "./trips.ts";
 
 export interface YearSummary {
@@ -36,6 +33,8 @@ export function computeSummary(db: Db, year: number, config: AppConfig): YearSum
   const dayRows = daysService.listForYear(db, year);
   const domainDays = dayRows.map(toDomainDay);
   const tripRows = tripsService.listForYear(db, year);
+  const { standardwoche } = getEffectiveSettings(db, config);
+  const effectiveHo = computeEffectiveHomeofficeDates(year, dayRows, standardwoche);
 
   let verpflegungSummeCent = 0;
   let kuerzungSummeCent = 0;
@@ -58,9 +57,13 @@ export function computeSummary(db: Db, year: number, config: AppConfig): YearSum
     year,
     verpflegungSummeCent,
     kuerzungSummeCent,
-    homeofficeTage: homeofficeTage(domainDays),
+    homeofficeTage: effectiveHo.length,
     homeofficeMaxTage: yearConfig.homeoffice_max_tage,
-    homeofficeBetragCent: homeofficePauschaleCent(domainDays, rates),
+    homeofficeBetragCent: homeofficeBetragCent(
+      effectiveHo.length,
+      rates.homeofficeProTagCent,
+      rates.homeofficeMaxCent,
+    ),
     homeofficeMaxBetragCent: rates.homeofficeMaxCent,
     reisetageNachTyp,
     reisenAnzahl: tripRows.length,

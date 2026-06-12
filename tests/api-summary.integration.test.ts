@@ -66,19 +66,22 @@ function authedReq(path: string, init?: RequestInit) {
 }
 
 describe("/api/summary", () => {
-  it("leeres Jahr → 0/0/0", async () => {
+  it("leeres Jahr → 0 Reisen + Standardwoche-Auto-HO", async () => {
     const res = await authedReq("/api/summary?year=2026");
     expect(res.status).toBe(200);
     const body = (await res.json()) as {
       verpflegungSummeCent: number;
       homeofficeTage: number;
+      homeofficeBetragCent: number;
       reisenAnzahl: number;
       homeofficeMaxTage: number;
     };
     expect(body.verpflegungSummeCent).toBe(0);
-    expect(body.homeofficeTage).toBe(0);
     expect(body.reisenAnzahl).toBe(0);
     expect(body.homeofficeMaxTage).toBe(210);
+    // 2026 hat 261 Werktage Mo-Fr → Standardwoche füllt sie automatisch
+    expect(body.homeofficeTage).toBe(261);
+    expect(body.homeofficeBetragCent).toBe(126000);
   });
 
   it("nach POST /api/trips → Verpflegungssumme korrekt", async () => {

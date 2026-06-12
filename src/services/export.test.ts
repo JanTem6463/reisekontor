@@ -5,34 +5,57 @@ import * as daysService from "./days.ts";
 import { buildHomeofficeRows, buildReisekostenRows } from "./export.ts";
 import * as tripsService from "./trips.ts";
 
-const fixtureConfig: AppConfig = {
-  raw: {
-    jahre: {
-      "2026": {
-        kleine_cent: 1400,
-        grosse_cent: 2800,
-        kuerz_fruehstueck_cent: 560,
-        kuerz_haupt_cent: 1120,
-        homeoffice_pro_tag_cent: 600,
-        homeoffice_max_tage: 210,
-        homeoffice_max_cent: 126000,
+function buildFixtureConfig(standardwoche: AppConfig["raw"]["standardwoche"]): AppConfig {
+  return {
+    raw: {
+      jahre: {
+        "2026": {
+          kleine_cent: 1400,
+          grosse_cent: 2800,
+          kuerz_fruehstueck_cent: 560,
+          kuerz_haupt_cent: 1120,
+          homeoffice_pro_tag_cent: 600,
+          homeoffice_max_tage: 210,
+          homeoffice_max_cent: 126000,
+        },
       },
+      standardwoche,
+      feiertage: { bundesland: "NI" },
     },
-    standardwoche: { mo: true, di: true, mi: true, do: true, fr: true, sa: false, so: false },
-    feiertage: { bundesland: "NI" },
-  },
-  ratesForYear: (year) => {
-    if (year !== 2026) throw new Error(`Keine Sätze für ${year}`);
-    return {
-      kleineCent: 1400,
-      grosseCent: 2800,
-      kuerzFruehstueckCent: 560,
-      kuerzHauptCent: 1120,
-      homeofficeProTagCent: 600,
-      homeofficeMaxCent: 126000,
-    };
-  },
+    ratesForYear: (year) => {
+      if (year !== 2026) throw new Error(`Keine Sätze für ${year}`);
+      return {
+        kleineCent: 1400,
+        grosseCent: 2800,
+        kuerzFruehstueckCent: 560,
+        kuerzHauptCent: 1120,
+        homeofficeProTagCent: 600,
+        homeofficeMaxCent: 126000,
+      };
+    },
+  };
+}
+
+const NO_AUTO_HO: AppConfig["raw"]["standardwoche"] = {
+  mo: false,
+  di: false,
+  mi: false,
+  do: false,
+  fr: false,
+  sa: false,
+  so: false,
 };
+const MO_FR: AppConfig["raw"]["standardwoche"] = {
+  mo: true,
+  di: true,
+  mi: true,
+  do: true,
+  fr: true,
+  sa: false,
+  so: false,
+};
+
+const fixtureConfig = buildFixtureConfig(NO_AUTO_HO);
 
 let db: Db;
 beforeEach(() => {
@@ -100,7 +123,7 @@ describe("buildReisekostenRows", () => {
 });
 
 describe("buildHomeofficeRows", () => {
-  it("leeres Jahr → 0 Rows, Summen 0", () => {
+  it("leeres Jahr + Auto aus → 0 Rows, Summen 0", () => {
     const r = buildHomeofficeRows(db, 2026, fixtureConfig);
     expect(r.rows).toEqual([]);
     expect(r.anzahl_tage).toBe(0);
@@ -109,7 +132,7 @@ describe("buildHomeofficeRows", () => {
     expect(r.max_betrag_cent).toBe(126000);
   });
 
-  it("5 HO + Urlaub + Krankheit → 5 Rows, Urlaub/Krankheit ausgeschlossen", () => {
+  it("5 explizite HO + Urlaub + Krankheit → 5 Rows, Urlaub/Krankheit ausgeschlossen", () => {
     for (let i = 1; i <= 5; i++) {
       daysService.upsert(db, {
         date: `2026-01-0${i}`,
@@ -151,7 +174,7 @@ describe("buildHomeofficeRows", () => {
     expect(r.betrag_gesamt_cent).toBe(3000);
   });
 
-  it("215 HO-Tage → 215 Rows aber betrag_gesamt = 126000 cent (Deckel)", () => {
+  it("215 explizite HO-Tage → 215 Rows aber betrag_gesamt = 126000 cent (Deckel)", () => {
     for (let i = 0; i < 215; i++) {
       const month = Math.floor(i / 28) + 1;
       const day = (i % 28) + 1;
@@ -192,5 +215,33 @@ describe("buildHomeofficeRows", () => {
     const r = buildHomeofficeRows(db, 2026, fixtureConfig);
     expect(r.anzahl_tage).toBe(1);
     expect(r.rows.some((x) => x.date === "2026-04-01")).toBe(true);
+  });
+
+  it("Mo-Fr-Standardwoche + leeres Jahr 2026 → 261 Werktage, Betrag gedeckelt", () => {
+    const cfg = buildFixtureConfig(MO_FR);
+    const r = buildHomeofficeRows(db, 2026, cfg);
+    expect(r.anzahl_tage).toBe(261);
+    expect(r.rows).toHaveLength(261);
+    expect(r.betrag_gesamt_cent).toBe(126000);
+    expect(r.rows[0]?.date).toBe("2026-01-01");
+  });
+
+  it("Mo-Fr + reise_voll am Werktag → sperrt diesen Tag im HO-Export", () => {
+    const cfg = buildFixtureConfig(MO_FR);
+    // 2026-04-02 ist Donnerstag → ohne Eintrag wäre HO
+    daysService.upsert(db, {
+      date: "2026-04-02",
+      year: 2026,
+      type: "reise_voll",
+      homeoffice: false,
+      tripId: null,
+      fruehstueck: false,
+      mittag: false,
+      abend: false,
+      zuzahlungCent: 0,
+    });
+    const r = buildHomeofficeRows(db, 2026, cfg);
+    expect(r.rows.some((x) => x.date === "2026-04-02")).toBe(false);
+    expect(r.anzahl_tage).toBe(260);
   });
 });

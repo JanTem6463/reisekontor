@@ -1,14 +1,11 @@
 import type { AppConfig } from "../config/index.ts";
 import type { Db } from "../db/client.ts";
-import {
-  homeofficePauschaleCent,
-  homeofficeTage,
-  kuerzungCent,
-  verpflegungProTagCent,
-} from "../domain/pauschalen.ts";
+import { kuerzungCent, verpflegungProTagCent } from "../domain/pauschalen.ts";
 import type { DayType } from "../domain/types.ts";
 import * as daysService from "./days.ts";
+import { computeEffectiveHomeofficeDates, homeofficeBetragCent } from "./effective-days.ts";
 import { toDomainDay } from "./mappers.ts";
+import { getEffectiveSettings } from "./settings.ts";
 
 const REISE_TYPES: DayType[] = ["reise_anreise", "reise_voll", "reise_abreise", "reise_eintaegig"];
 
@@ -85,24 +82,21 @@ export function buildHomeofficeRows(db: Db, year: number, config: AppConfig): Ho
   if (!yearConfig) throw new Error(`Keine Sätze für Jahr ${year}`);
 
   const dbRows = daysService.listForYear(db, year);
-  const domainDays = dbRows.map(toDomainDay);
+  const { standardwoche } = getEffectiveSettings(db, config);
+  const effectiveDates = computeEffectiveHomeofficeDates(year, dbRows, standardwoche);
 
-  const hoDays = domainDays.filter(
-    (d) =>
-      d.type === "homeoffice" ||
-      (d.homeoffice && (d.type === "reise_anreise" || d.type === "reise_abreise")),
-  );
-
-  const rows: HomeofficeRow[] = [...hoDays]
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .map((d) => ({ date: d.date }));
+  const rows: HomeofficeRow[] = effectiveDates.map((date) => ({ date }));
 
   return {
     year,
     rows,
-    anzahl_tage: homeofficeTage(domainDays),
+    anzahl_tage: effectiveDates.length,
     betrag_pro_tag_cent: rates.homeofficeProTagCent,
-    betrag_gesamt_cent: homeofficePauschaleCent(domainDays, rates),
+    betrag_gesamt_cent: homeofficeBetragCent(
+      effectiveDates.length,
+      rates.homeofficeProTagCent,
+      rates.homeofficeMaxCent,
+    ),
     max_tage: yearConfig.homeoffice_max_tage,
     max_betrag_cent: rates.homeofficeMaxCent,
   };
