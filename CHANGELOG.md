@@ -7,6 +7,21 @@ Versionierung: [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-06-12
+
+### Added
+- Reisen-Form mit Per-Tag-Tabelle: nach Eingabe von Datum + Übernachtung erscheint live eine Tabelle aller berechneten Reisetage mit Checkboxen für Frühstück/Mittag/Abend, €-Input für Zuzahlung und Combo-Checkbox für Homeoffice (nur bei Anreise/Abreise).
+- `POST /api/trips` und `PUT /api/trips/:id` body um optionales `days: Array<{date, fruehstueck?, mittag?, abend?, zuzahlungCent?, homeoffice?}>` erweitert. Service `tripsService.create`/`update` bekommen optionales drittes Argument `dayOverrides`. Backward-compatible — `days` weggelassen = bisheriges Verhalten mit Default-Werten.
+- `ui/src/lib/trip-preview.ts` — `classifyTripPreview()` als kleiner Frontend-Helper (Spiegel der Backend-`classifyTrip`-Logik, deterministisch, manuell synchronisiert).
+- `TripDayOverride`-Interface im UI-API-Client.
+- 6 neue Tests (4 Service + 2 Integration) → 179 Backend-Tests total.
+- 5 neue Locales-Keys (de.json + en.json beide auf 171 Keys).
+
+### Changed
+- `package.json` + `ui/package.json` — Version 0.10.0.
+- `ReiseFormDialog` öffnet im Edit-Modus mit vor-befüllter Tabelle (existierende Mahlzeiten/Zuzahlung/HO-Combo sichtbar, gehen beim Save nicht verloren).
+- Dialog-Breite auf `max-w-3xl` (für Tabelle).
+
 ## [0.9.0] — 2026-06-11
 
 ### Added
