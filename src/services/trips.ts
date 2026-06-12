@@ -12,6 +12,15 @@ export interface TripWithDays {
   days: DbDayRow[];
 }
 
+export interface DayOverride {
+  date: string;
+  fruehstueck?: boolean;
+  mittag?: boolean;
+  abend?: boolean;
+  zuzahlungCent?: number;
+  homeoffice?: boolean;
+}
+
 export function listForYear(db: Db, year: number): TripWithDays[] {
   const tripRows = db.select().from(trips).where(eq(trips.year, year)).all();
   return tripRows.map((trip) => ({
@@ -30,9 +39,10 @@ export function get(db: Db, id: number): TripWithDays | null {
   };
 }
 
-export function create(db: Db, input: TripInput): TripWithDays {
+export function create(db: Db, input: TripInput, dayOverrides: DayOverride[] = []): TripWithDays {
   const classified = classifyTrip(input); // wirft bei ungültigen Eingaben
   const year = Number.parseInt(input.startDate.slice(0, 4), 10);
+  const overrideMap = new Map<string, DayOverride>(dayOverrides.map((o) => [o.date, o]));
 
   return db.transaction((tx) => {
     const [insertedTrip] = tx
@@ -47,29 +57,38 @@ export function create(db: Db, input: TripInput): TripWithDays {
       .all();
     if (!insertedTrip) throw new Error("Trip-Insert lieferte keine Row zurück");
 
-    const dayInserts = classified.map((c) => ({
-      date: c.date,
-      year: Number.parseInt(c.date.slice(0, 4), 10),
-      type: c.type,
-      homeoffice: false,
-      tripId: insertedTrip.id,
-      fruehstueck: false,
-      mittag: false,
-      abend: false,
-      zuzahlungCent: 0,
-    }));
+    const dayInserts = classified.map((c) => {
+      const ov = overrideMap.get(c.date);
+      return {
+        date: c.date,
+        year: Number.parseInt(c.date.slice(0, 4), 10),
+        type: c.type,
+        homeoffice: ov?.homeoffice ?? false,
+        tripId: insertedTrip.id,
+        fruehstueck: ov?.fruehstueck ?? false,
+        mittag: ov?.mittag ?? false,
+        abend: ov?.abend ?? false,
+        zuzahlungCent: ov?.zuzahlungCent ?? 0,
+      };
+    });
     const insertedDays = tx.insert(dayEntries).values(dayInserts).returning().all();
 
     return { trip: insertedTrip, days: insertedDays };
   });
 }
 
-export function update(db: Db, id: number, input: TripInput): TripWithDays | null {
+export function update(
+  db: Db,
+  id: number,
+  input: TripInput,
+  dayOverrides: DayOverride[] = [],
+): TripWithDays | null {
   const existing = get(db, id);
   if (!existing) return null;
 
   const classified = classifyTrip(input); // wirft bei ungültiger Eingabe
   const year = Number.parseInt(input.startDate.slice(0, 4), 10);
+  const overrideMap = new Map<string, DayOverride>(dayOverrides.map((o) => [o.date, o]));
 
   return db.transaction((tx) => {
     // Hart-Reset: alte day_entries löschen
@@ -89,17 +108,20 @@ export function update(db: Db, id: number, input: TripInput): TripWithDays | nul
       .all();
     if (!updatedTrip) throw new Error("Trip-Update lieferte keine Row zurück");
 
-    const dayInserts = classified.map((c) => ({
-      date: c.date,
-      year: Number.parseInt(c.date.slice(0, 4), 10),
-      type: c.type,
-      homeoffice: false,
-      tripId: id,
-      fruehstueck: false,
-      mittag: false,
-      abend: false,
-      zuzahlungCent: 0,
-    }));
+    const dayInserts = classified.map((c) => {
+      const ov = overrideMap.get(c.date);
+      return {
+        date: c.date,
+        year: Number.parseInt(c.date.slice(0, 4), 10),
+        type: c.type,
+        homeoffice: ov?.homeoffice ?? false,
+        tripId: id,
+        fruehstueck: ov?.fruehstueck ?? false,
+        mittag: ov?.mittag ?? false,
+        abend: ov?.abend ?? false,
+        zuzahlungCent: ov?.zuzahlungCent ?? 0,
+      };
+    });
     const insertedDays = tx.insert(dayEntries).values(dayInserts).returning().all();
 
     return { trip: updatedTrip, days: insertedDays };

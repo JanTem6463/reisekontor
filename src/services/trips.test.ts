@@ -155,3 +155,74 @@ describe("Trips Service — delete + list + get", () => {
     expect(fetched?.days).toHaveLength(2);
   });
 });
+
+describe("Trips Service — create with dayOverrides", () => {
+  it("ohne overrides → Defaults wie bisher (backward-compat)", () => {
+    const result = tripsService.create(db, {
+      startDate: "2026-04-01",
+      endDate: "2026-04-03",
+      uebernachtung: true,
+    });
+    expect(result.days[0]?.fruehstueck).toBe(false);
+    expect(result.days[1]?.zuzahlungCent).toBe(0);
+  });
+
+  it("mit overrides → values gesetzt", () => {
+    const result = tripsService.create(
+      db,
+      {
+        startDate: "2026-04-01",
+        endDate: "2026-04-03",
+        uebernachtung: true,
+      },
+      [
+        { date: "2026-04-01", fruehstueck: true, homeoffice: true },
+        { date: "2026-04-02", mittag: true, abend: true, zuzahlungCent: 300 },
+      ],
+    );
+    const anreise = result.days.find((d) => d.date === "2026-04-01");
+    expect(anreise?.fruehstueck).toBe(true);
+    expect(anreise?.homeoffice).toBe(true);
+    const voll = result.days.find((d) => d.date === "2026-04-02");
+    expect(voll?.mittag).toBe(true);
+    expect(voll?.abend).toBe(true);
+    expect(voll?.zuzahlungCent).toBe(300);
+  });
+
+  it("override für nicht-existierendes Datum → silently ignored", () => {
+    const result = tripsService.create(
+      db,
+      {
+        startDate: "2026-04-01",
+        endDate: "2026-04-02",
+        uebernachtung: true,
+      },
+      [{ date: "2026-12-31", mittag: true }],
+    );
+    expect(result.days).toHaveLength(2);
+    expect(result.days.every((d) => d.mittag === false)).toBe(true);
+  });
+});
+
+describe("Trips Service — update with dayOverrides", () => {
+  it("mit overrides setzt Mahlzeiten/Zuzahlung neu", () => {
+    const original = tripsService.create(db, {
+      startDate: "2026-04-01",
+      endDate: "2026-04-03",
+      uebernachtung: true,
+    });
+    const updated = tripsService.update(
+      db,
+      original.trip.id,
+      {
+        startDate: "2026-04-01",
+        endDate: "2026-04-03",
+        uebernachtung: true,
+      },
+      [{ date: "2026-04-02", fruehstueck: true, mittag: true }],
+    );
+    const voll = updated?.days.find((d) => d.date === "2026-04-02");
+    expect(voll?.fruehstueck).toBe(true);
+    expect(voll?.mittag).toBe(true);
+  });
+});
