@@ -5,8 +5,24 @@ import type { Standardwoche } from "./settings.ts";
 
 type DbDayRow = typeof dayEntries.$inferSelect;
 
-const MO_FR: Standardwoche = { mo: true, di: true, mi: true, do: true, fr: true, sa: false, so: false };
-const NONE: Standardwoche = { mo: false, di: false, mi: false, do: false, fr: false, sa: false, so: false };
+const MO_FR: Standardwoche = {
+  mo: true,
+  di: true,
+  mi: true,
+  do: true,
+  fr: true,
+  sa: false,
+  so: false,
+};
+const NONE: Standardwoche = {
+  mo: false,
+  di: false,
+  mi: false,
+  do: false,
+  fr: false,
+  sa: false,
+  so: false,
+};
 
 function row(date: string, overrides: Partial<DbDayRow>): DbDayRow {
   return {
@@ -56,11 +72,7 @@ describe("computeEffectiveHomeofficeDates", () => {
 
   it("DB-Eintrag büro sperrt einen Mo-Fr-Werktag", () => {
     // 2026-01-02 ist Freitag
-    const r = computeEffectiveHomeofficeDates(
-      2026,
-      [row("2026-01-02", { type: "buero" })],
-      MO_FR,
-    );
+    const r = computeEffectiveHomeofficeDates(2026, [row("2026-01-02", { type: "buero" })], MO_FR);
     expect(r).not.toContain("2026-01-02");
     // 01.01. (Do) bleibt drin
     expect(r).toContain("2026-01-01");
@@ -84,10 +96,7 @@ describe("computeEffectiveHomeofficeDates", () => {
   it("reise_voll/reise_eintaegig sperren den Werktag", () => {
     const r = computeEffectiveHomeofficeDates(
       2026,
-      [
-        row("2026-01-01", { type: "reise_voll" }),
-        row("2026-01-02", { type: "reise_eintaegig" }),
-      ],
+      [row("2026-01-01", { type: "reise_voll" }), row("2026-01-02", { type: "reise_eintaegig" })],
       MO_FR,
     );
     expect(r).not.toContain("2026-01-01");
