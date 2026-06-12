@@ -101,25 +101,48 @@ export async function reisekostenToPdf(data: ReisekostenExport): Promise<Buffer>
 }
 
 export async function steuerUebersichtToPdf(data: SteuerUebersichtExport): Promise<Buffer> {
-  const doc = new PDFDocument({ size: "A4", margin: 40 });
+  const MARGIN = 40;
+  const doc = new PDFDocument({ size: "A4", margin: MARGIN });
+  const PAGE_WIDTH = doc.page.width;
+  const CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN;
+  const VALUE_COL_WIDTH = 80;
+  const GAP = 12;
+  const LABEL_X = MARGIN + VALUE_COL_WIDTH + GAP;
+  const LABEL_COL_WIDTH = PAGE_WIDTH - LABEL_X - MARGIN;
+  const ROW_GAP = 6;
 
-  doc.fontSize(16).text(`Steuer-Übersicht ${data.year}`, { align: "left" });
-  doc.fontSize(9).text(`Erstellt am ${new Date().toISOString().slice(0, 10)}`, { align: "right" });
-  doc.moveDown();
+  doc
+    .fontSize(16)
+    .text(`Steuer-Übersicht ${data.year}`, MARGIN, MARGIN, { width: CONTENT_WIDTH });
+  doc
+    .fontSize(9)
+    .text(`Erstellt am ${new Date().toISOString().slice(0, 10)}`, MARGIN, MARGIN, {
+      width: CONTENT_WIDTH,
+      align: "right",
+    });
+  doc.moveDown(1.5);
 
-  doc.font("Helvetica-Bold").fontSize(11).text("Stammdaten");
+  // Stammdaten — vertikale Liste, immer am linken Margin
+  doc.font("Helvetica-Bold").fontSize(11).text("Stammdaten", MARGIN, doc.y);
+  doc.moveDown(0.3);
   doc.font("Helvetica").fontSize(10);
   const p = data.personal;
-  doc.text(p.name);
-  doc.text(p.strasse);
-  doc.text(`${p.plz} ${p.ort}`.trim());
-  doc.text(`Arbeitgeber: ${p.arbeitgeber}`);
-  doc.text(`Eintrittsdatum: ${p.eintrittsdatum}`);
-  doc.moveDown();
+  const stammLines = [
+    p.name,
+    p.strasse,
+    `${p.plz} ${p.ort}`.trim(),
+    `Arbeitgeber: ${p.arbeitgeber}`,
+    `Eintrittsdatum: ${p.eintrittsdatum}`,
+  ];
+  for (const line of stammLines) {
+    doc.text(line, MARGIN, doc.y, { width: CONTENT_WIDTH });
+  }
+  doc.moveDown(1);
 
-  doc.font("Helvetica-Bold").fontSize(11).text("Kennzahlen");
+  // Kennzahlen — Tabelle: Value rechtsbündig, Label linksbündig
+  doc.font("Helvetica-Bold").fontSize(11).text("Kennzahlen", MARGIN, doc.y);
+  doc.moveDown(0.5);
   doc.font("Helvetica").fontSize(10);
-  doc.moveDown(0.3);
 
   const rows: Array<{ value: string; label: string }> = [
     {
@@ -149,13 +172,17 @@ export async function steuerUebersichtToPdf(data: SteuerUebersichtExport): Promi
     { value: String(data.homeoffice_tage), label: "Homeoffice Tage" },
   ];
 
-  const valueColWidth = 90;
-  const labelColWidth = 420;
   for (const r of rows) {
     const y = doc.y;
-    doc.text(r.value, doc.x, y, { width: valueColWidth, align: "right" });
-    doc.text(r.label, doc.x + valueColWidth + 10, y, { width: labelColWidth });
-    doc.moveDown(0.5);
+    const labelHeight = doc.heightOfString(r.label, { width: LABEL_COL_WIDTH });
+    const valueHeight = doc.heightOfString(r.value, { width: VALUE_COL_WIDTH });
+    const rowHeight = Math.max(labelHeight, valueHeight);
+
+    doc.text(r.value, MARGIN, y, { width: VALUE_COL_WIDTH, align: "right" });
+    doc.text(r.label, LABEL_X, y, { width: LABEL_COL_WIDTH });
+
+    doc.x = MARGIN;
+    doc.y = y + rowHeight + ROW_GAP;
   }
 
   return bufferDoc(doc);
