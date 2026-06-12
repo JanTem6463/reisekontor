@@ -19,7 +19,11 @@ services:
     image: reisekontor:latest
     container_name: reisekontor
     env_file:
-      - ../.env
+      # interpolate:false damit `$argon2id$...` im Hash nicht als $-Variable
+      # interpretiert wird. Erst ab Compose ≥ 2.30 verfügbar.
+      - path: ../.env
+        required: true
+        format: raw
     environment:
       - NODE_ENV=production
       - APP_CONFIG_PATH=/app/config/app.yaml
