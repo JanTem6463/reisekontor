@@ -6,6 +6,7 @@ import { Hono } from "hono";
 import { type AppConfig, loadConfig } from "../config/index.ts";
 import { type Db, createDb } from "../db/client.ts";
 import { logger as appLogger } from "../shared/logger.ts";
+import { HubSsoVerifier } from "../auth/hub-sso.ts";
 import { authMiddleware } from "./middleware/auth.ts";
 import { requestLogger } from "./middleware/request-logger.ts";
 import { createAuthRouter } from "./routes/auth.ts";
@@ -15,8 +16,15 @@ import { createExportRouter } from "./routes/export.ts";
 import { createHealthRouter } from "./routes/health.ts";
 import { createHolidaysRouter } from "./routes/holidays.ts";
 import { createSettingsRouter } from "./routes/settings.ts";
+import { createSsoRouter } from "./routes/sso.ts";
 import { createSummaryRouter } from "./routes/summary.ts";
 import { createTripsRouter } from "./routes/trips.ts";
+
+export interface HubSsoDeps {
+  hubPublicKeyPem: string;
+  hubIssuer: string;
+  audience: string;
+}
 
 export interface ServerDeps {
   config: AppConfig;
@@ -24,6 +32,7 @@ export interface ServerDeps {
   passwordHash: string;
   sessionSecret: string;
   isProduction: boolean;
+  hubSso?: HubSsoDeps | undefined;
 }
 
 export function createServer(deps: ServerDeps): Hono {
@@ -41,6 +50,25 @@ export function createServer(deps: ServerDeps): Hono {
       isProduction: deps.isProduction,
     }),
   );
+
+  // /sso: Ed25519-Bridge vom jans-hub (kein Auth-Middleware, kein /api-Prefix
+  // damit die HubSsoConfig 1:1 zum Spec-Layout passt). Nur registriert wenn
+  // HUB_PUBLIC_KEY konfiguriert ist.
+  if (deps.hubSso) {
+    const verifier = new HubSsoVerifier({
+      hubPublicKeyPem: deps.hubSso.hubPublicKeyPem,
+      hubIssuer: deps.hubSso.hubIssuer,
+      audience: deps.hubSso.audience,
+    });
+    app.route(
+      "/sso",
+      createSsoRouter({
+        verifier,
+        sessionSecret: deps.sessionSecret,
+        isProduction: deps.isProduction,
+      }),
+    );
+  }
 
   // Alles andere unter /api/* erfordert Auth
   app.use("/api/*", authMiddleware(deps.sessionSecret));
@@ -110,7 +138,19 @@ async function main(): Promise<void> {
   const isProduction = process.env.NODE_ENV === "production";
   const port = Number.parseInt(process.env.PORT ?? "3030", 10);
 
-  const app = createServer({ config, db, passwordHash, sessionSecret, isProduction });
+  const hubPublicKey = process.env.HUB_PUBLIC_KEY;
+  const hubSso = hubPublicKey
+    ? {
+        hubPublicKeyPem: hubPublicKey,
+        hubIssuer: process.env.HUB_ISSUER ?? "hub.jans-claude-apps.de",
+        audience: process.env.HUB_AUDIENCE ?? "reisen",
+      }
+    : undefined;
+  if (hubSso) {
+    appLogger.info({ audience: hubSso.audience }, "hub sso enabled");
+  }
+
+  const app = createServer({ config, db, passwordHash, sessionSecret, isProduction, hubSso });
 
   serve({ fetch: app.fetch, port }, (info) => {
     appLogger.info({ port: info.port }, "reisekontor server gestartet");

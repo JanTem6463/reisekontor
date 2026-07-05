@@ -29,6 +29,9 @@ importers:
       hono:
         specifier: ^4.12.25
         version: 4.12.25
+      jose:
+        specifier: ^6.2.3
+        version: 6.2.3
       pdfkit:
         specifier: ^0.19.1
         version: 0.19.1
@@ -2265,6 +2268,9 @@ packages:
   jiti@1.21.7:
     resolution: {integrity: sha512-/imKNG4EbWNrVjoNC/1H5/9GFy+tqjGBHCaSsN+P2RnPqjsLmv6UD3Ej+Kj8nBWaRAwyk7kK5ZUc+OEatnTR3A==}
     hasBin: true
+
+  jose@6.2.3:
+    resolution: {integrity: sha512-YYVDInQKFJfR/xa3ojUTl8c2KoTwiL1R5Wg9YCydwH0x0B9grbzlg5HC7mMjCtUJjbQ/YnGEZIhI5tCgfTb4Hw==}
 
   joycon@3.1.1:
     resolution: {integrity: sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw==}
@@ -4874,6 +4880,8 @@ snapshots:
   jalaali-js@1.2.8: {}
 
   jiti@1.21.7: {}
+
+  jose@6.2.3: {}
 
   joycon@3.1.1: {}
 
