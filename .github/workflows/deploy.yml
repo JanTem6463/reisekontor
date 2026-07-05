@@ -22,14 +22,15 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            # HUB_PUBLIC_KEY aus finanz-app .env.prod uebernehmen (jans-hub
-            # Bootstrap schreibt ihn dort primaer). Idempotent.
+            # HUB_PUBLIC_KEY aus finanz-app .env.prod nach ~/reisekontor/.env.hub
+            # kopieren. Der zweite env-file in docker-compose.prod.yaml verwendet
+            # NICHT format: raw, sodass die \n-escapes im PEM zu echten Newlines
+            # im Container werden.
             HUB_LINE=$(grep "^HUB_PUBLIC_KEY=" ~/Finanz-App/deploy/.env.prod || echo "")
             if [ -n "$HUB_LINE" ]; then
-              touch ~/reisekontor/.env
-              sed -i "/^HUB_PUBLIC_KEY=/d" ~/reisekontor/.env
-              printf "%s\n" "$HUB_LINE" >> ~/reisekontor/.env
-              echo "HUB_PUBLIC_KEY synced from finanz-app .env.prod"
+              printf "%s\n" "$HUB_LINE" > ~/reisekontor/.env.hub
+              chmod 600 ~/reisekontor/.env.hub
+              echo "HUB_PUBLIC_KEY synced to ~/reisekontor/.env.hub"
             else
               echo "WARN: HUB_PUBLIC_KEY not found in finanz-app .env.prod — /sso will be disabled"
             fi

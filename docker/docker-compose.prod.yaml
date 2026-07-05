@@ -24,6 +24,11 @@ services:
       - path: ../.env
         required: true
         format: raw
+      # Hub-SSO-Vars separat: HUB_PUBLIC_KEY im PEM steht mit \n-escapes und
+      # braucht Standard-Compose-Interpretation (nicht raw), damit die \n als
+      # echte Newlines im Container-ENV ankommen.
+      - path: ../.env.hub
+        required: false
     environment:
       - NODE_ENV=production
       - APP_CONFIG_PATH=/app/config/app.yaml
